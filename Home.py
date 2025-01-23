@@ -5,14 +5,26 @@ from datetime import datetime
 import pytz
 import plotly.graph_objects as go
 from agile_home_dashboard import fetch_data
+import toml
 
-# Define the directory for pages
+
+# Load the TOML file
+def load_config(file_path=".streamlit/config.toml"):
+    return toml.load(file_path)
+
+
 st.set_page_config(
     page_title="Agile Daily Overview",
     # page_icon="🏂",
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+config = load_config()
+colors = config["theme"]
+st.session_state.bg_color = colors["secondaryBackgroundColor"]
+st.session_state.font = colors["textColor"]
+st.session_state.marker = colors["textColor"]
 
 if "api_key" not in st.session_state:
     st.session_state.api_key = ""  # Default value
@@ -36,30 +48,30 @@ if day_to_plot == "Today":
             go.Bar(
                 x=df_today["valid_from"],  # Time column
                 y=df_today["value_inc_vat"],  # Price column
-                marker=dict(color="#3d405b"),  # Optional: Set bar color
+                marker=dict(color=st.session_state.marker),  # Optional: Set bar color
                 name="Price [p/kWh]",  # Legend name
             )
         )
 
         fig_all.update_layout(
-            plot_bgcolor="rgba(129, 178, 154, 0.2)",  # Set the plot area background to white
+            plot_bgcolor=st.session_state.bg_color,  # Set the plot area background to white
             font=dict(
-                color="#3d405b",  # Set text color
+                color=st.session_state.font,  # Set text color
                 size=14,  # Optional: Adjust text size for better visibility
             ),
             title=dict(
                 text="Agile Pricing",  # Add a title
-                font=dict(color="#3d405b"),  # Set title text color
+                font=dict(color=st.session_state.font),  # Set title text color
             ),
             xaxis=dict(
                 title="Time",  # Label the x-axis
-                title_font=dict(color="#3d405b"),  # X-axis title color
-                tickfont=dict(color="#3d405b"),  # X-axis tick color
+                title_font=dict(color=st.session_state.font),  # X-axis title color
+                tickfont=dict(color=st.session_state.font),  # X-axis tick color
             ),
             yaxis=dict(
                 title="Price [p/kWh]",  # Label the y-axis
-                title_font=dict(color="#3d405b"),  # Y-axis title color
-                tickfont=dict(color="#3d405b"),  # Y-axis tick color
+                title_font=dict(color=st.session_state.font),  # Y-axis title color
+                tickfont=dict(color=st.session_state.font),  # Y-axis tick color
             ),
         )
         st.plotly_chart(fig_all)
@@ -77,30 +89,30 @@ elif day_to_plot == "Tomorrow":
             go.Bar(
                 x=df_tom["valid_from"],  # Time column
                 y=df_tom["value_inc_vat"],  # Price column
-                marker=dict(color="#3d405b"),  # Optional: Set bar color
+                marker=dict(color=st.session_state.marker),  # Optional: Set bar color
                 name="Price [p/kWh]",  # Legend name
             )
         )
 
         fig_all.update_layout(
-            plot_bgcolor="rgba(129, 178, 154, 0.2)",  # Set the plot area background to white
+            plot_bgcolor=st.session_state.bg_color,  # Set the plot area background to white
             font=dict(
-                color="#3d405b",  # Set text color
+                color=st.session_state.font,  # Set text color
                 size=14,  # Optional: Adjust text size for better visibility
             ),
             title=dict(
                 text="Agile Pricing",  # Add a title
-                font=dict(color="#3d405b"),  # Set title text color
+                font=dict(color=st.session_state.font),  # Set title text color
             ),
             xaxis=dict(
                 title="Time",  # Label the x-axis
-                title_font=dict(color="#3d405b"),  # X-axis title color
-                tickfont=dict(color="#3d405b"),  # X-axis tick color
+                title_font=dict(color=st.session_state.font),  # X-axis title color
+                tickfont=dict(color=st.session_state.font),  # X-axis tick color
             ),
             yaxis=dict(
                 title="Price [p/kWh]",  # Label the y-axis
-                title_font=dict(color="#3d405b"),  # Y-axis title color
-                tickfont=dict(color="#3d405b"),  # Y-axis tick color
+                title_font=dict(color=st.session_state.font),  # Y-axis title color
+                tickfont=dict(color=st.session_state.font),  # Y-axis tick color
             ),
         )
         st.plotly_chart(fig_all)

@@ -9,23 +9,45 @@ import plotly.graph_objects as go
 # Function to get the current or selected time
 def get_current_time(toggle, df):
     if toggle:
-        df = df[df["valid_from"].dt.date == datetime.now(pytz.UTC).date()]
-        start_time = df["valid_from"].min().to_pydatetime()
-        end_time = df["valid_from"].max().to_pydatetime()
+        col1, col2 = st.columns([1, 3])  # Adjust the column widths as needed
 
-        # Use the slider
-        selected_time = st.slider(
-            "Select time:",
-            min_value=start_time,
-            max_value=end_time,
-            value=start_time,
-            format="HH:mm",
-            step=timedelta(minutes=30),
+        # Day toggle in the first column
+        with col1:
+            day_toggle = st.radio("Select day:", options=["Today", "Tomorrow"], index=0)
+
+        # Determine the selected date
+        selected_date = (
+            datetime.now(pytz.UTC).date()
+            if day_toggle == "Today"
+            else datetime.now(pytz.UTC).date() + timedelta(days=1)
         )
-        combined_datetime = datetime.combine(
-            datetime.now(pytz.UTC).date(), selected_time.time()
-        )
+
+        # Filter DataFrame based on the selected date
+        df = df[df["valid_from"].dt.date == selected_date]
+
+        if not df.empty:
+            # Define slider bounds
+            start_time = df["valid_from"].min().to_pydatetime()
+            end_time = df["valid_from"].max().to_pydatetime()
+
+            # Slider in the second column
+            with col2:
+                selected_time = st.slider(
+                    "Select time:",
+                    min_value=start_time,
+                    max_value=end_time,
+                    value=start_time,
+                    format="HH:mm",
+                    step=timedelta(minutes=30),
+                )
+
+            combined_datetime = datetime.combine(selected_date, selected_time.time())
+        else:
+            st.warning(f"No data available for {day_toggle.lower()}!")
+
+        combined_datetime = datetime.combine(selected_date, selected_time.time())
         return pd.to_datetime(pytz.UTC.localize(combined_datetime))
+
     return datetime.now(pytz.UTC)
 
 
@@ -146,16 +168,33 @@ def plot_kettle_timing():
             x=kettle_timing["Volume [mL]"],
             y=kettle_timing["Time [s]"],
             mode="markers",
-            marker=dict(size=12, color="blue"),
+            marker=dict(size=12, color=st.session_state.marker),
         )
     )
 
     fig.update_layout(
-        plot_bgcolor="white",
-        paper_bgcolor="white",
-        title="Kettle Timing Plot",
-        xaxis_title="Volume [mL]",
-        yaxis_title="Time [s]",
+        # title="Kettle Timing Plot",
+        # xaxis_title="Volume [mL]",
+        # yaxis_title="Time [s]",
+        plot_bgcolor=st.session_state.bg_color,  # Set the plot area background to white
+        font=dict(
+            color=st.session_state.font,  # Set text color
+            size=14,  # Optional: Adjust text size for better visibility
+        ),
+        title=dict(
+            text="Kettle Timing Plot",  # Add a title
+            font=dict(color=st.session_state.font),  # Set title text color
+        ),
+        xaxis=dict(
+            title="Time",  # Label the x-axis
+            title_font=dict(color=st.session_state.font),  # X-axis title color
+            tickfont=dict(color=st.session_state.font),  # X-axis tick color
+        ),
+        yaxis=dict(
+            title="Price [p/kWh]",  # Label the y-axis
+            title_font=dict(color=st.session_state.font),  # Y-axis title color
+            tickfont=dict(color=st.session_state.font),  # Y-axis tick color
+        ),
     )
     st.plotly_chart(fig)
 
@@ -163,49 +202,47 @@ def plot_kettle_timing():
 # Main application logic
 def main():
     st.title("Kettle Pricing on Octopus Agile")
-    if st.session_state.df is None:
-        # st.write("Please input your API key in the home page.")
-        # raise st.ScriptRunner.StopException
-        raise ValueError("API key not found.")
+    if st.session_state.df is not None:
+        st.write("How much does the kettle cost right now?")
 
-    st.write("How much does the kettle cost right now?")
+        run_time = st.number_input(
+            "Kettle run time [s]:", min_value=0, max_value=2000, value=137
+        )
+        power = st.number_input(
+            "Kettle power [kW]:", min_value=0.0, max_value=1e8, value=2.1
+        )
 
-    run_time = st.number_input(
-        "Kettle run time [s]:", min_value=0, max_value=2000, value=137
-    )
-    power = st.number_input(
-        "Kettle power [kW]:", min_value=0.0, max_value=1e8, value=2.1
-    )
+        # Toggle for manual time selection
+        toggle = st.toggle("Select time manually", False)
+        current_time = get_current_time(toggle, st.session_state.df)
 
-    # Toggle for manual time selection
-    toggle = st.toggle("Select time manually", False)
-    current_time = get_current_time(toggle, st.session_state.df)
-
-    # Calculate and display costs
-    (
-        current_price,
-        next_price,
-        cost_now,
-        cost_next,
-        current_cost_row,
-        next_cost_row,
-    ) = calculate_kettle_cost(st.session_state.df, current_time, run_time, power)
-
-    if current_price is not None:
-        display_kettle_costs(
+        # Calculate and display costs
+        (
             current_price,
             next_price,
             cost_now,
             cost_next,
             current_cost_row,
             next_cost_row,
-        )
-    else:
-        st.write("No pricing data available for the current time.")
+        ) = calculate_kettle_cost(st.session_state.df, current_time, run_time, power)
 
-    st.markdown("##")
-    # Plot kettle timing
-    plot_kettle_timing()
+        if current_price is not None:
+            display_kettle_costs(
+                current_price,
+                next_price,
+                cost_now,
+                cost_next,
+                current_cost_row,
+                next_cost_row,
+            )
+        else:
+            st.write("No pricing data available for the current time.")
+
+        st.markdown("##")
+        # Plot kettle timing
+        plot_kettle_timing()
+    else:
+        st.error("API key not found.")
 
 
 # Run the application

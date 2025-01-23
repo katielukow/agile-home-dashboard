@@ -7,9 +7,9 @@ port = 8501      # Define the port for the Streamlit app
 
 [theme]
 base= "dark"
-primaryColor = "3d405b"
+primaryColor = "#3d405b"
 backgroundColor = "#f4f1de"
-secondaryBackgroundColor = "b8d6c7"
+secondaryBackgroundColor = "#b8d6c7"
 textColor = "#3d405b"
 font = "sans serif"
 
