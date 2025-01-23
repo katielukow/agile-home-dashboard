@@ -163,10 +163,13 @@ def plot_kettle_timing():
 # Main application logic
 def main():
     st.title("Kettle Pricing on Octopus Agile")
+    if st.session_state.df is None:
+        # st.write("Please input your API key in the home page.")
+        # raise st.ScriptRunner.StopException
+        raise ValueError("API key not found.")
 
     st.write("How much does the kettle cost right now?")
 
-    # Inputs for kettle power and run time
     run_time = st.number_input(
         "Kettle run time [s]:", min_value=0, max_value=2000, value=137
     )

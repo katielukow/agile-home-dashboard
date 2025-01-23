@@ -110,7 +110,7 @@ elif day_to_plot == "Tomorrow":
 
 
 # st.write(pd.DataFrame(kettle_timing))
-PAGES_DIR = "Pages"
+PAGES_DIR = "pages"
 
 
 # Function to load a module from a file
