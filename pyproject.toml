@@ -2,12 +2,18 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[tool]
-name = "my_streamlit_app"
-version = "0.1.0"
+[project]
+name = "Agile-Home-Dashboard"
+version = "0.0.1"
 description = "A simple Streamlit app"
-authors = ["Your Name <your.email@example.com>"]
+authors = [{name = "Katie Lukow"}]
+requires-python = ">=3.9"
 
-[tool.dependencies]
-python = "^3.8"
+[dependencies]
 streamlit = "^1.0.0"
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit",
+    "ruff",
+]
