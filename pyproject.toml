@@ -8,10 +8,10 @@ version = "0.0.1"
 description = "A simple Streamlit app"
 authors = [{name = "Katie Lukow"}]
 requires-python = ">=3.9"
-
-[dependencies]
-streamlit = "^1.0.0"
-plotly="^=5.0"
+dependencies = [
+"streamlit>=1.0.0",
+"plotly>=5.0",
+]
 
 [project.optional-dependencies]
 dev = [
