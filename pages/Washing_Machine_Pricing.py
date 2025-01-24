@@ -30,10 +30,6 @@ def calculate_drying_cost(dry_time, power, df, current_time):
 
 
 def display_washer_timing(end_time, end_at):
-    # st.write(
-    #                 f"The washing machine must end by {end_time.time()} if the dryer runs for {dry_time} hours."
-    #             )
-    #             st.write(f"Set the machine to end in {end_at} hours.")
     st.markdown(
         """
         <div style="text-align: center; margin-top: 20px;">
