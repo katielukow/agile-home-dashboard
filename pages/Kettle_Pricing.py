@@ -245,12 +245,8 @@ def main():
         # st.write(((run_time / 3600) * current_price * power) / 100)
         # Calculate and display costs
         (
-            # current_price,
-            # next_price,
             cost_now,
             cost_next,
-            # current_cost_row,
-            # next_cost_row,
         ) = calculate_kettle_cost(current_price, next_price, run_time, power)
 
         if current_price is not None:
