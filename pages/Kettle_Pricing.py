@@ -156,9 +156,9 @@ def display_kettle_costs(
 def plot_kettle_timing():
     kettle_timing = pd.DataFrame(
         {
-            "Volume [mL]": [600, 550, 350, 1100, 637, 804, 600],
-            "Time [s]": [137, 135, 98, 237, 148, 178, 150],
-            "Starting Temp [C]": [18, 18, 12, 12, 15, 11, 16],
+            "Volume [mL]": [600, 550, 350, 1100, 637, 804, 600, 570],
+            "Time [s]": [137, 135, 98, 237, 148, 178, 150, 125],
+            "Starting Temp [C]": [18, 18, 12, 12, 15, 11, 16, 13],
         }
     )
 
