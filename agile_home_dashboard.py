@@ -83,6 +83,7 @@ def get_current_time(toggle, df):
             combined_datetime = datetime.combine(selected_date, selected_time.time())
         else:
             st.warning(f"No data available for {day_toggle.lower()}!")
+            return None
 
         combined_datetime = datetime.combine(selected_date, selected_time.time())
         return pd.to_datetime(pytz.UTC.localize(combined_datetime))

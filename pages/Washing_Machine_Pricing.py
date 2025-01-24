@@ -1,9 +1,10 @@
 import streamlit as st
 from datetime import datetime, timedelta
 import pytz
+from agile_home_dashboard import get_current_time
 
 
-def calculate_drying_cost(dry_time, power, df):
+def calculate_drying_cost(dry_time, power, df, current_time):
     costs = df[["value_inc_vat", "valid_from", "valid_to"]].copy()
 
     # Calculate the drying cost for each price window
@@ -20,7 +21,7 @@ def calculate_drying_cost(dry_time, power, df):
     end_time = costs.loc[min_index, "valid_to"]
 
     # Calculate the hours remaining from now until the optimal end time
-    time_difference = end_time - datetime.now(pytz.UTC)
+    time_difference = end_time - current_time
     end_at = round(
         time_difference.total_seconds() / 3600, 1
     )  # Round to 2 decimal places
@@ -28,26 +29,62 @@ def calculate_drying_cost(dry_time, power, df):
     return end_time, end_at
 
 
+def display_washer_timing(end_time, end_at):
+    st.markdown(
+        """
+        <div style="text-align: center; margin-top: 20px;">
+            <div>
+                <strong>Dryer must end by:</strong>
+            </div>
+            <div>
+                <strong>{}</strong>
+            </div>
+            <div>
+                <strong>Set total dryer time to:</strong>
+            </div>
+            <div>
+                <strong>{:.2f} hours</strong>
+            </div>
+        </div>
+        """.format(end_time.strftime("%d-%m-%y %H:%M"), end_at),
+        unsafe_allow_html=True,
+    )
+
+
 def main():
     st.title("Washing Machine Pricing on Octopus Agile")
 
     if st.session_state.df is not None:
-        # wash_time = st.number_input("Washing run time [hr]:", value=1.5)
-        dry_time = st.number_input("Drying run time [hr]:", value=3.0)
-        power = st.number_input("Washing machine power [kW]:", value=2.0)
+        toggle = st.toggle("Select time manually", False)
+        current_time = get_current_time(toggle, st.session_state.df)
+        if current_time is not None:
+            wash_time = st.number_input("Washing run time [hr]:", value=2.5)
+            dry_time = st.number_input("Drying run time [hr]:", value=3.0)
+            power = st.number_input("Washing machine power [kW]:", value=2.0)
 
-        if st.session_state.df["valid_from"].max().date() != datetime.now(
-            pytz.UTC
-        ).date() + timedelta(days=1):
-            st.warning("Data for tomorrow not available yet.")
+            forward_df = st.session_state.df[
+                st.session_state.df["valid_from"]
+                > current_time + timedelta(hours=wash_time)
+            ]
 
-        end_time, end_at = calculate_drying_cost(dry_time, power, st.session_state.df)
+            if st.session_state.df["valid_from"].max().date() != datetime.now(
+                pytz.UTC
+            ).date() + timedelta(days=1):
+                st.warning("Data for tomorrow not available yet.")
 
-        st.write(
-            f"The washing machine must end at {end_time.time()} if the dryer runs for {dry_time} hours."
-        )
-        st.write(f"Set the machine to end in {end_at} hours.")
+            if (
+                current_time + timedelta(hours=wash_time + dry_time)
+                > st.session_state.df["valid_from"].max()
+            ):
+                st.warning("Not enough data available for the selected washing time.")
+            else:
+                end_time, end_at = calculate_drying_cost(
+                    dry_time, power, forward_df, current_time
+                )
+                display_washer_timing(end_time, end_at)
 
+        else:
+            st.markdown("##")
     else:
         st.error("API key not found.")
 
