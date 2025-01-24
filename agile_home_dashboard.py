@@ -2,6 +2,8 @@ import streamlit as st
 import requests
 import base64
 import pandas as pd
+from datetime import datetime, timedelta
+import pytz
 
 
 def fetch_data(api_key):
@@ -42,3 +44,65 @@ def fetch_data(api_key):
         st.write(f"Failed to fetch data. Status code: {response.status_code}")
         st.write(response.text)
         return None
+
+
+def get_current_time(toggle, df):
+    if toggle:
+        col1, col2 = st.columns([1, 3])  # Adjust the column widths as needed
+
+        # Day toggle in the first column
+        with col1:
+            day_toggle = st.radio("Select day:", options=["Today", "Tomorrow"], index=0)
+
+        # Determine the selected date
+        selected_date = (
+            datetime.now(pytz.UTC).date()
+            if day_toggle == "Today"
+            else datetime.now(pytz.UTC).date() + timedelta(days=1)
+        )
+
+        # Filter DataFrame based on the selected date
+        df = df[df["valid_from"].dt.date == selected_date]
+
+        if not df.empty:
+            # Define slider bounds
+            start_time = df["valid_from"].min().to_pydatetime()
+            end_time = df["valid_from"].max().to_pydatetime()
+
+            # Slider in the second column
+            with col2:
+                selected_time = st.slider(
+                    "Select time:",
+                    min_value=start_time,
+                    max_value=end_time,
+                    value=start_time,
+                    format="HH:mm",
+                    step=timedelta(minutes=30),
+                )
+
+            combined_datetime = datetime.combine(selected_date, selected_time.time())
+        else:
+            st.warning(f"No data available for {day_toggle.lower()}!")
+
+        combined_datetime = datetime.combine(selected_date, selected_time.time())
+        return pd.to_datetime(pytz.UTC.localize(combined_datetime))
+
+    return datetime.now(pytz.UTC)
+
+
+def get_current_cost(df, current_time):
+    current_cost_row = df[
+        (df["valid_from"] <= current_time) & (df["valid_to"] > current_time)
+    ]
+    current_price = current_cost_row.iloc[0]["value_inc_vat"]
+    if current_cost_row.empty:
+        return None, None, None, None
+
+    if current_cost_row.index[0] == df.index[-1]:
+        next_cost_row = current_cost_row
+        next_price = 0
+    else:
+        next_cost_row = df.iloc[df.index.get_loc(current_cost_row.index[0]) + 1]
+        next_price = next_cost_row["value_inc_vat"]
+
+    return current_price, next_price, current_cost_row, next_cost_row
