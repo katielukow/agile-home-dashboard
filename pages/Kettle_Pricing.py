@@ -8,8 +8,7 @@ from agile_home_dashboard import get_current_cost, get_current_time
 def calculate_kettle_cost(current_price, next_price, run_time, power):
     cost_now = ((run_time / 3600) * current_price * power) / 100
     cost_next = ((run_time / 3600) * next_price * power) / 100
-
-    return (cost_now, cost_next)
+    return cost_now, cost_next
 
 
 # Function to display kettle costs
@@ -85,9 +84,9 @@ def display_kettle_costs(
 def plot_kettle_timing():
     kettle_timing = pd.DataFrame(
         {
-            "Volume [mL]": [600, 550, 350, 1100, 637, 804, 600, 570, 500],
-            "Time [s]": [137, 135, 98, 237, 148, 178, 150, 125, 130],
-            "Starting Temp [C]": [18, 18, 12, 12, 15, 11, 16, 13, 12],
+            "Volume [mL]": [600, 550, 350, 1100, 637, 804, 600, 570, 500, 830],
+            "Time [s]": [137, 135, 98, 237, 148, 178, 150, 125, 130, 205],
+            "Starting Temp [C]": [18, 18, 12, 12, 15, 11, 16, 13, 12, 10],
         }
     )
 
@@ -102,24 +101,24 @@ def plot_kettle_timing():
     )
 
     fig.update_layout(
-        plot_bgcolor=st.session_state.bg_color,  # Set the plot area background to white
+        plot_bgcolor=st.session_state.bg_color,
         font=dict(
-            color=st.session_state.font,  # Set text color
-            size=14,  # Optional: Adjust text size for better visibility
+            color=st.session_state.font,
+            size=14,
         ),
         title=dict(
-            text="Kettle Timing Plot",  # Add a title
-            font=dict(color=st.session_state.font),  # Set title text color
+            text="Kettle Timing Plot",
+            font=dict(color=st.session_state.font),
         ),
         xaxis=dict(
-            title="Time",  # Label the x-axis
-            title_font=dict(color=st.session_state.font),  # X-axis title color
-            tickfont=dict(color=st.session_state.font),  # X-axis tick color
+            title="Time",
+            title_font=dict(color=st.session_state.font),
+            tickfont=dict(color=st.session_state.font),
         ),
         yaxis=dict(
-            title="Price [p/kWh]",  # Label the y-axis
-            title_font=dict(color=st.session_state.font),  # Y-axis title color
-            tickfont=dict(color=st.session_state.font),  # Y-axis tick color
+            title="Price [p/kWh]",
+            title_font=dict(color=st.session_state.font),
+            tickfont=dict(color=st.session_state.font),
         ),
     )
     st.plotly_chart(fig)
@@ -163,7 +162,6 @@ def main():
             st.write("No pricing data available for the current time.")
 
         st.markdown("##")
-        # Plot kettle timing
         plot_kettle_timing()
     else:
         st.error("API key not found.")

@@ -9,8 +9,6 @@ def main():
     if st.session_state.df is not None:
         toggle = st.toggle("Select time manually", False)
         current_time = get_current_time(toggle, st.session_state.df)
-        # wash_time = st.number_input("Washing run time [hr]:", value=1.5)
-        # temp = st.number_input("Oven Temperature [C]:", value=170)
         bake_time = st.number_input("Total Bake Time [min]:", value=20)
         oven_power = 2.5  # kW
         current_price, next_price, current_cost_row, next_cost_row = get_current_cost(
