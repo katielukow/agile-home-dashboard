@@ -1,7 +1,9 @@
 import streamlit as st
 from datetime import datetime, timedelta
 import pytz
-from agile_home_dashboard import get_current_time
+from agile_home_dashboard import get_current_time, load_css
+
+load_css()
 
 
 def calculate_drying_cost(dry_time, power, df, current_time):

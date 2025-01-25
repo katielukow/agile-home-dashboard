@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-from agile_home_dashboard import get_current_time, get_current_cost
+from agile_home_dashboard import get_current_time, get_current_cost, load_css
 
 
 def calculate_kettle_cost(current_price, next_price, run_time, power):
@@ -127,6 +127,10 @@ def plot_kettle_timing():
     st.plotly_chart(fig)
 
 
+color = "#B87272"
+load_css()
+
+
 # Main application logic
 def main():
     st.title("Kettle Pricing on Octopus Agile")
@@ -134,7 +138,7 @@ def main():
         st.write("How much does the kettle cost right now?")
 
         run_time = st.number_input(
-            "Kettle run time [s]:", min_value=0, max_value=2000, value=137
+            "Kettle run time [s]:", min_value=0, max_value=10000, value=137
         )
         power = st.number_input(
             "Kettle power [kW]:", min_value=0.0, max_value=1e8, value=2.1

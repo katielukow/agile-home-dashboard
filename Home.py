@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime
 import pytz
 import plotly.graph_objects as go
-from agile_home_dashboard import fetch_data
+from agile_home_dashboard import fetch_data, load_css
 import toml
 
 
@@ -20,11 +20,18 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+
+# additional colours
+plotMarkerColor = "#F71E1E"  # plot marker colour
+
 config = load_config()
 colors = config["theme"]
-st.session_state.bg_color = colors["secondaryBackgroundColor"]
+st.session_state.bg_color = colors["backgroundColor"]
 st.session_state.font = colors["textColor"]
-st.session_state.marker = colors["textColor"]
+st.session_state.marker = colors["primaryColor"]
+st.session_state.textBoxColor = "#B87272"
+
+load_css()
 
 if "api_key" not in st.session_state:
     st.session_state.api_key = ""  # Default value

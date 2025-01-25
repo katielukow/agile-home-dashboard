@@ -1,17 +1,36 @@
 # .streamlit/config.toml
-
+# agile-home-dashboard
 [server]
 #headless = true  # Run Streamlit in headless mode, ideal for cloud deployments
 port = 8501      # Define the port for the Streamlit app
 #enableCORS = false  # Disable CORS if deploying within the same domain
 
+# 2025-01-24 current theme
+#[theme]
+#base= "dark"
+#primaryColor = "#3d405b"
+#backgroundColor = "#f4f1de"
+#secondaryBackgroundColor = "#b8d6c7"
+#textColor = "#3d405b"
+#font = "sans serif"
+
+#[theme]
+#base= "light"
+#primaryColor = "#FF9F1C" # slider colour
+#backgroundColor = "#FCFCFC" # background colour
+#secondaryBackgroundColor = "#BBD8B3" #side bar and text box colour
+#accentColor = "#3E2F5B" # plot marker colour
+#textColor = "#261132" # text colour
+#font = "sans serif"
+
 [theme]
-base= "dark"
-primaryColor = "#3d405b"
-backgroundColor = "#f4f1de"
-secondaryBackgroundColor = "#b8d6c7"
-textColor = "#3d405b"
+base= "light"
+primaryColor = "#702FBA" # slider colour
+backgroundColor = "#FCFCFC" # background colour
+secondaryBackgroundColor = "#D1D1D1" #side bar
+textColor = "#261132" # text colour
 font = "sans serif"
+
 
 [browser]
 gatherUsageStats = false  # Disable collection of usage statistics for privacy

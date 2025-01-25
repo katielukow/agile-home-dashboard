@@ -107,3 +107,62 @@ def get_current_cost(df, current_time):
         next_price = next_cost_row["value_inc_vat"]
 
     return current_price, next_price, current_cost_row, next_cost_row
+
+
+def load_css():
+    st.markdown(
+        f"""
+        <style>
+        /* Change the text color in the input field */
+        div[data-baseweb="input"] input {{
+            color: white; /* Set text color to white */
+            background-color: {st.session_state.textBoxColor}; /* Set background color */
+        }}
+
+        /* Style the +/- buttons at the end of number input */
+        div[data-testid="stNumberInput"] button {{
+            color: white; /* Change +/- button text color */
+            background-color: {st.session_state.textBoxColor}; /* Match the background color */
+            /* border: 1px solid white; */ /* Add border to the buttons (commented out) */
+            /* border-radius: 3px; */ /* Round the edges (commented out) */
+        }}
+
+        /* Optional: Change hover effect for buttons */
+        div[data-testid="stNumberInput"] button:hover {{
+            background-color: {st.session_state.textBoxColor}; /* Slightly lighter background on hover */
+            color: white; /* Keep the text color white */
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Inject custom CSS for the sidebar
+    st.markdown(
+        f"""
+        <style>
+        /* Change the sidebar background color */
+        section[data-testid="stSidebar"] {{
+            background-color: {st.session_state.textBoxColor}; /* Light blue */
+        }}
+
+        /* Change the font color in the sidebar */
+        section[data-testid="stSidebar"] .css-17eq0hr {{
+            color: white; /* Custom text color */
+        }}
+
+        /* Customize text input boxes in the sidebar */
+        section[data-testid="stSidebar"] div[data-baseweb="input"] {{
+            background-color: #e0f7fa; /* Light cyan */
+            border: 1px solid #3d405b; /* Border matches primary color */
+            border-radius: 8px;
+        }}
+
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Sidebar with customized styles
+    # with st.sidebar:
+    # st.title("Custom Sidebar")
