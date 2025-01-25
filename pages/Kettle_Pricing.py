@@ -1,7 +1,8 @@
-import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-from agile_home_dashboard import get_current_time, get_current_cost
+import streamlit as st
+
+from agile_home_dashboard import get_current_cost, get_current_time
 
 
 def calculate_kettle_cost(current_price, next_price, run_time, power):
@@ -16,23 +17,23 @@ def display_kettle_costs(
     current_price, next_price, cost_now, cost_next, current_cost_row, next_cost_row
 ):
     st.markdown(
-        """
+        f"""
         <div style="text-align: center;">
             <strong>Current Energy Cost</strong><br>
-            <span style="font-size: 1.5em; color: black;">{:.4f} p/kWh</span>
+            <span style="font-size: 1.5em; color: black;">{current_price:.4f} p/kWh</span>
         </div>
-        """.format(current_price),
+        """,
         unsafe_allow_html=True,
     )
 
     # Next energy cost
     st.markdown(
-        """
+        f"""
         <div style="text-align: center; margin-top: 20px;">
             <strong>Next Energy Cost</strong><br>
-            <span style="font-size: 1.5em; color: black;">{:.4f} p/kWh</span>
+            <span style="font-size: 1.5em; color: black;">{next_price:.4f} p/kWh</span>
         </div>
-        """.format(next_price),
+        """,
         unsafe_allow_html=True,
     )
 
@@ -53,16 +54,13 @@ def display_kettle_costs(
     if next_price == 0:
         color = "black"
         st.markdown(
-            """
+            f"""
         <div style="text-align: center; margin-top: 30px;">
             <strong>Kettle Next Cost</strong><br>
-            <span style="font-size: 1.2em; color: {};">£{:.4f}</span><br>
+            <span style="font-size: 1.2em; color: {color};">£{cost_next:.4f}</span><br>
             <small>The next kettle cost is not available</small>
         </div>
-        """.format(
-                color,
-                cost_next,
-            ),
+        """,
             unsafe_allow_html=True,
         )
     else:
