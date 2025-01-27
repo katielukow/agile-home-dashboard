@@ -107,3 +107,30 @@ def get_current_cost(df, current_time):
         next_price = next_cost_row["value_inc_vat"]
 
     return current_price, next_price, current_cost_row, next_cost_row
+
+
+def load_css():
+    st.markdown(
+        f"""
+        <style>
+        /* Change the text color in the input field */
+        div[data-baseweb="input"] input {{
+            color: white;
+            background-color: {st.session_state.textBoxColor};
+        }}
+
+        /* Style the +/- buttons at the end of number input */
+        div[data-testid="stNumberInput"] button {{
+            color: white;
+            background-color: {st.session_state.textBoxColor};
+        }}
+
+        /* Optional: Change hover effect for buttons */
+        div[data-testid="stNumberInput"] button:hover {{
+            background-color: {st.session_state.textBoxColor};
+            color: white;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )

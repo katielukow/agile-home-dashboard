@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-from agile_home_dashboard import get_current_time, get_current_cost
+from agile_home_dashboard import get_current_time, get_current_cost, load_css
 
 
 def calculate_kettle_cost(current_price, next_price, run_time, power):
@@ -104,37 +104,40 @@ def plot_kettle_timing():
     )
 
     fig.update_layout(
-        plot_bgcolor=st.session_state.bg_color,  # Set the plot area background to white
+        plot_bgcolor=st.session_state.bg_color,
         font=dict(
-            color=st.session_state.font,  # Set text color
-            size=14,  # Optional: Adjust text size for better visibility
+            color=st.session_state.font,
+            size=14,
         ),
         title=dict(
-            text="Kettle Timing Plot",  # Add a title
-            font=dict(color=st.session_state.font),  # Set title text color
+            text="Kettle Timing Plot",
+            font=dict(color=st.session_state.font),
         ),
         xaxis=dict(
-            title="Time",  # Label the x-axis
-            title_font=dict(color=st.session_state.font),  # X-axis title color
-            tickfont=dict(color=st.session_state.font),  # X-axis tick color
+            title="Time",
+            title_font=dict(color=st.session_state.font),
+            tickfont=dict(color=st.session_state.font),
         ),
         yaxis=dict(
-            title="Price [p/kWh]",  # Label the y-axis
-            title_font=dict(color=st.session_state.font),  # Y-axis title color
-            tickfont=dict(color=st.session_state.font),  # Y-axis tick color
+            title="Price [p/kWh]",
+            title_font=dict(color=st.session_state.font),
+            tickfont=dict(color=st.session_state.font),
         ),
     )
     st.plotly_chart(fig)
 
 
-# Main application logic
+color = "#B87272"
+load_css()
+
+
 def main():
     st.title("Kettle Pricing on Octopus Agile")
     if st.session_state.df is not None:
         st.write("How much does the kettle cost right now?")
 
         run_time = st.number_input(
-            "Kettle run time [s]:", min_value=0, max_value=2000, value=137
+            "Kettle run time [s]:", min_value=0, max_value=10000, value=137
         )
         power = st.number_input(
             "Kettle power [kW]:", min_value=0.0, max_value=1e8, value=2.1
