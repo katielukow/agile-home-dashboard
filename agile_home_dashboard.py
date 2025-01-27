@@ -137,32 +137,6 @@ def load_css():
         unsafe_allow_html=True,
     )
 
-    # Inject custom CSS for the sidebar
-    st.markdown(
-        f"""
-        <style>
-        /* Change the sidebar background color */
-        section[data-testid="stSidebar"] {{
-            background-color: {st.session_state.textBoxColor}; /* Light blue */
-        }}
-
-        /* Change the font color in the sidebar */
-        section[data-testid="stSidebar"] .css-17eq0hr {{
-            color: white; /* Custom text color */
-        }}
-
-        /* Customize text input boxes in the sidebar */
-        section[data-testid="stSidebar"] div[data-baseweb="input"] {{
-            background-color: #e0f7fa; /* Light cyan */
-            border: 1px solid #3d405b; /* Border matches primary color */
-            border-radius: 8px;
-        }}
-
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
     # Sidebar with customized styles
     # with st.sidebar:
     # st.title("Custom Sidebar")

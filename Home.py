@@ -21,15 +21,33 @@ st.set_page_config(
 )
 
 
+# st.markdown(
+#     """
+#     <style>
+#     /* Change the sidebar background color */
+#     section[data-testid="stSidebar"] {
+#         background-color: #f0f8ff; /* Light blue */
+#     }
+
+#     /* Change the font color in the sidebar */
+#     section[data-testid="stSidebar"] .css-17eq0hr {
+#         color: #B5146A; /* Custom text color */
+#     }
+
+#     """,
+#     unsafe_allow_html=True,
+# )
+
 # additional colours
-plotMarkerColor = "#F71E1E"  # plot marker colour
+plotMarkerColor = "#7DBDF5"  # plot marker colour
 
 config = load_config()
 colors = config["theme"]
 st.session_state.bg_color = colors["backgroundColor"]
 st.session_state.font = colors["textColor"]
-st.session_state.marker = colors["primaryColor"]
-st.session_state.textBoxColor = "#B87272"
+st.session_state.marker = plotMarkerColor
+st.session_state.textBoxColor = "#2A69A1"
+st.session_state.textColor = "#B5146A"
 
 load_css()
 
@@ -42,7 +60,8 @@ st.session_state.api_key = st.text_input(
 api_key = st.session_state.api_key
 st.session_state.df = fetch_data(api_key)
 
-day_to_plot = st.selectbox("Select a day to plot:", ["Today", "Tomorrow"])
+# day_to_plot = st.selectbox("Select a day to plot:", ["Today", "Tomorrow"])
+day_to_plot = st.radio("Select day:", options=["Today", "Tomorrow"], index=0)
 if day_to_plot == "Today":
     if st.session_state.df is None:
         st.write("No data available for today.")

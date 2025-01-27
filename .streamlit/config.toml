@@ -25,9 +25,9 @@ port = 8501      # Define the port for the Streamlit app
 
 [theme]
 base= "light"
-primaryColor = "#702FBA" # slider colour
+primaryColor = "#B5146A" # slider colour
 backgroundColor = "#FCFCFC" # background colour
-secondaryBackgroundColor = "#D1D1D1" #side bar
+secondaryBackgroundColor = "#7DBDF5" #side bar
 textColor = "#261132" # text colour
 font = "sans serif"
 
