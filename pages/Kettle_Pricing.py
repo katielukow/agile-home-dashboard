@@ -104,24 +104,24 @@ def plot_kettle_timing():
     )
 
     fig.update_layout(
-        plot_bgcolor=st.session_state.bg_color,  # Set the plot area background to white
+        plot_bgcolor=st.session_state.bg_color,
         font=dict(
-            color=st.session_state.font,  # Set text color
-            size=14,  # Optional: Adjust text size for better visibility
+            color=st.session_state.font,
+            size=14,
         ),
         title=dict(
-            text="Kettle Timing Plot",  # Add a title
-            font=dict(color=st.session_state.font),  # Set title text color
+            text="Kettle Timing Plot",
+            font=dict(color=st.session_state.font),
         ),
         xaxis=dict(
-            title="Time",  # Label the x-axis
-            title_font=dict(color=st.session_state.font),  # X-axis title color
-            tickfont=dict(color=st.session_state.font),  # X-axis tick color
+            title="Time",
+            title_font=dict(color=st.session_state.font),
+            tickfont=dict(color=st.session_state.font),
         ),
         yaxis=dict(
-            title="Price [p/kWh]",  # Label the y-axis
-            title_font=dict(color=st.session_state.font),  # Y-axis title color
-            tickfont=dict(color=st.session_state.font),  # Y-axis tick color
+            title="Price [p/kWh]",
+            title_font=dict(color=st.session_state.font),
+            tickfont=dict(color=st.session_state.font),
         ),
     )
     st.plotly_chart(fig)
@@ -131,7 +131,6 @@ color = "#B87272"
 load_css()
 
 
-# Main application logic
 def main():
     st.title("Kettle Pricing on Octopus Agile")
     if st.session_state.df is not None:

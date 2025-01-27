@@ -115,28 +115,22 @@ def load_css():
         <style>
         /* Change the text color in the input field */
         div[data-baseweb="input"] input {{
-            color: white; /* Set text color to white */
-            background-color: {st.session_state.textBoxColor}; /* Set background color */
+            color: white;
+            background-color: {st.session_state.textBoxColor};
         }}
 
         /* Style the +/- buttons at the end of number input */
         div[data-testid="stNumberInput"] button {{
-            color: white; /* Change +/- button text color */
-            background-color: {st.session_state.textBoxColor}; /* Match the background color */
-            /* border: 1px solid white; */ /* Add border to the buttons (commented out) */
-            /* border-radius: 3px; */ /* Round the edges (commented out) */
+            color: white;
+            background-color: {st.session_state.textBoxColor};
         }}
 
         /* Optional: Change hover effect for buttons */
         div[data-testid="stNumberInput"] button:hover {{
-            background-color: {st.session_state.textBoxColor}; /* Slightly lighter background on hover */
-            color: white; /* Keep the text color white */
+            background-color: {st.session_state.textBoxColor};
+            color: white;
         }}
         </style>
         """,
         unsafe_allow_html=True,
     )
-
-    # Sidebar with customized styles
-    # with st.sidebar:
-    # st.title("Custom Sidebar")

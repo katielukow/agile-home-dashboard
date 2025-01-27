@@ -20,25 +20,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-
-# st.markdown(
-#     """
-#     <style>
-#     /* Change the sidebar background color */
-#     section[data-testid="stSidebar"] {
-#         background-color: #f0f8ff; /* Light blue */
-#     }
-
-#     /* Change the font color in the sidebar */
-#     section[data-testid="stSidebar"] .css-17eq0hr {
-#         color: #B5146A; /* Custom text color */
-#     }
-
-#     """,
-#     unsafe_allow_html=True,
-# )
-
-# additional colours
 plotMarkerColor = "#7DBDF5"  # plot marker colour
 
 config = load_config()
@@ -60,7 +41,6 @@ st.session_state.api_key = st.text_input(
 api_key = st.session_state.api_key
 st.session_state.df = fetch_data(api_key)
 
-# day_to_plot = st.selectbox("Select a day to plot:", ["Today", "Tomorrow"])
 day_to_plot = st.radio("Select day:", options=["Today", "Tomorrow"], index=0)
 if day_to_plot == "Today":
     if st.session_state.df is None:
