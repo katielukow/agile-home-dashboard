@@ -1,11 +1,13 @@
-import streamlit as st
 import os
-import pandas as pd
 from datetime import datetime
-import pytz
+
+import pandas as pd
 import plotly.graph_objects as go
-from agile_home_dashboard import fetch_data, load_css
+import pytz
+import streamlit as st
 import toml
+
+from agile_home_dashboard import fetch_data, load_css
 
 
 # Load the TOML file

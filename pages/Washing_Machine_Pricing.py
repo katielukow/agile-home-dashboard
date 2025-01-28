@@ -1,6 +1,8 @@
-import streamlit as st
 from datetime import datetime, timedelta
+
 import pytz
+import streamlit as st
+
 from agile_home_dashboard import get_current_time, load_css
 
 load_css()
@@ -8,25 +10,19 @@ load_css()
 
 def calculate_drying_cost(dry_time, power, df, current_time):
     costs = df[["value_inc_vat", "valid_from", "valid_to"]].copy()
-
-    # Calculate the drying cost for each price window
     costs["drying_cost"] = costs["value_inc_vat"] * power
 
-    # Define the rolling window size (convert hours to 30-minute intervals)
+    # Define the rolling window size
     window_size = int(dry_time * 2)  # 1 hour = 2 intervals (30 min each)
     costs["rolling_sum"] = costs["drying_cost"].rolling(window=window_size).sum()
 
-    # Find the index of the minimum rolling cost
+    # Find the minimum cost index and end time
     min_index = costs["rolling_sum"].idxmin()
-
-    # Extract the optimal end time
     end_time = costs.loc[min_index, "valid_to"]
 
     # Calculate the hours remaining from now until the optimal end time
-    time_difference = end_time - current_time
-    end_at = round(
-        time_difference.total_seconds() / 3600, 1
-    )  # Round to 2 decimal places
+    time_diff = end_time - current_time
+    end_at = round(time_diff.total_seconds() / 3600, 1)
 
     return end_time, end_at
 

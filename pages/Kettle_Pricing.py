@@ -1,14 +1,14 @@
-import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-from agile_home_dashboard import get_current_time, get_current_cost, load_css
+import streamlit as st
+
+from agile_home_dashboard import get_current_cost, get_current_time, load_css
 
 
 def calculate_kettle_cost(current_price, next_price, run_time, power):
     cost_now = ((run_time / 3600) * current_price * power) / 100
     cost_next = ((run_time / 3600) * next_price * power) / 100
-
-    return (cost_now, cost_next)
+    return cost_now, cost_next
 
 
 # Function to display kettle costs
@@ -16,23 +16,23 @@ def display_kettle_costs(
     current_price, next_price, cost_now, cost_next, current_cost_row, next_cost_row
 ):
     st.markdown(
-        """
+        f"""
         <div style="text-align: center;">
             <strong>Current Energy Cost</strong><br>
-            <span style="font-size: 1.5em; color: black;">{:.4f} p/kWh</span>
+            <span style="font-size: 1.5em; color: black;">{current_price:.4f} p/kWh</span>
         </div>
-        """.format(current_price),
+        """,
         unsafe_allow_html=True,
     )
 
     # Next energy cost
     st.markdown(
-        """
+        f"""
         <div style="text-align: center; margin-top: 20px;">
             <strong>Next Energy Cost</strong><br>
-            <span style="font-size: 1.5em; color: black;">{:.4f} p/kWh</span>
+            <span style="font-size: 1.5em; color: black;">{next_price:.4f} p/kWh</span>
         </div>
-        """.format(next_price),
+        """,
         unsafe_allow_html=True,
     )
 
@@ -53,16 +53,13 @@ def display_kettle_costs(
     if next_price == 0:
         color = "black"
         st.markdown(
-            """
+            f"""
         <div style="text-align: center; margin-top: 30px;">
             <strong>Kettle Next Cost</strong><br>
-            <span style="font-size: 1.2em; color: {};">£{:.4f}</span><br>
+            <span style="font-size: 1.2em; color: {color};">£{cost_next:.4f}</span><br>
             <small>The next kettle cost is not available</small>
         </div>
-        """.format(
-                color,
-                cost_next,
-            ),
+        """,
             unsafe_allow_html=True,
         )
     else:
@@ -87,9 +84,9 @@ def display_kettle_costs(
 def plot_kettle_timing():
     kettle_timing = pd.DataFrame(
         {
-            "Volume [mL]": [600, 550, 350, 1100, 637, 804, 600, 570, 500],
-            "Time [s]": [137, 135, 98, 237, 148, 178, 150, 125, 130],
-            "Starting Temp [C]": [18, 18, 12, 12, 15, 11, 16, 13, 12],
+            "Volume [mL]": [600, 550, 350, 1100, 637, 804, 600, 570, 500, 830],
+            "Time [s]": [137, 135, 98, 237, 148, 178, 150, 125, 130, 205],
+            "Starting Temp [C]": [18, 18, 12, 12, 15, 11, 16, 13, 12, 10],
         }
     )
 
@@ -168,7 +165,6 @@ def main():
             st.write("No pricing data available for the current time.")
 
         st.markdown("##")
-        # Plot kettle timing
         plot_kettle_timing()
     else:
         st.error("API key not found.")

@@ -1,9 +1,10 @@
-import streamlit as st
-import requests
 import base64
-import pandas as pd
 from datetime import datetime, timedelta
+
+import pandas as pd
 import pytz
+import requests
+import streamlit as st
 
 
 def fetch_data(api_key):
@@ -14,7 +15,7 @@ def fetch_data(api_key):
     url = "https://api.octopus.energy/v1/products/AGILE-24-10-01/electricity-tariffs/E-1R-AGILE-24-10-01-H/standard-unit-rates/"
 
     # Encode the API key for Basic Authentication
-    auth_header = base64.b64encode(f"{api_key}:".encode("utf-8")).decode("utf-8")
+    auth_header = base64.b64encode(f"{api_key}:".encode()).decode("utf-8")
 
     # Set up the headers
     headers = {
