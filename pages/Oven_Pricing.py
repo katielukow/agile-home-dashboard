@@ -1,6 +1,8 @@
 import streamlit as st
 
-from agile_home_dashboard import get_current_cost, get_current_time
+from agile_home_dashboard import get_current_cost, get_current_time, load_css
+
+load_css()
 
 
 def display_oven_costs(current_price, next_price, cost_now, current_cost_row):

@@ -7,7 +7,7 @@ import pytz
 import streamlit as st
 import toml
 
-from agile_home_dashboard import fetch_data
+from agile_home_dashboard import fetch_data, load_css
 
 
 # Load the TOML file
@@ -22,11 +22,17 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+plotMarkerColor = "#7DBDF5"  # plot marker colour
+
 config = load_config()
 colors = config["theme"]
-st.session_state.bg_color = colors["secondaryBackgroundColor"]
+st.session_state.bg_color = colors["backgroundColor"]
 st.session_state.font = colors["textColor"]
-st.session_state.marker = colors["textColor"]
+st.session_state.marker = plotMarkerColor
+st.session_state.textBoxColor = "#2A69A1"
+st.session_state.textColor = "#B5146A"
+
+load_css()
 st.session_state.primary_color = colors["primaryColor"]
 
 if "api_key" not in st.session_state:
@@ -38,7 +44,7 @@ st.session_state.api_key = st.text_input(
 api_key = st.session_state.api_key
 st.session_state.df = fetch_data(api_key)
 
-day_to_plot = st.selectbox("Select a day to plot:", ["Today", "Tomorrow"])
+day_to_plot = st.radio("Select day:", options=["Today", "Tomorrow"], index=0)
 if day_to_plot == "Today":
     if st.session_state.df is None:
         st.write("No data available for today.")
