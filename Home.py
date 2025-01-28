@@ -27,6 +27,7 @@ colors = config["theme"]
 st.session_state.bg_color = colors["secondaryBackgroundColor"]
 st.session_state.font = colors["textColor"]
 st.session_state.marker = colors["textColor"]
+st.session_state.primary_color = colors["primaryColor"]
 
 if "api_key" not in st.session_state:
     st.session_state.api_key = ""  # Default value
