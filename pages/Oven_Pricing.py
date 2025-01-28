@@ -7,18 +7,13 @@ load_css()
 
 def display_oven_costs(current_price, next_price, cost_now, current_cost_row):
     col1, col2, col3 = st.columns(3)
-    # row2 = st.columns(3)
+
+    col_format = f"background-color: {st.session_state.primary_color}; color: white; text-align: center; padding: 20px; border-radius: 10px;"
 
     with col1:
         st.markdown(
             f"""
-            <div style="
-                background-color: {st.session_state.primary_color};
-                color: white;
-                text-align: center;
-                padding: 20px;
-                border-radius: 10px;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+            <div style="{col_format}">
                 <strong style="font-size: 1.2em;">Current Energy Cost</strong><br>
                 <span style="font-size: 1.4em;">{current_price:.4f} p/kWh</span>
             </div>
@@ -29,14 +24,8 @@ def display_oven_costs(current_price, next_price, cost_now, current_cost_row):
     with col2:
         st.markdown(
             f"""
-                <div style="
-                    background-color: {st.session_state.primary_color};
-                    color: white;
-                    text-align: center;
-                    padding: 20px;
-                    border-radius: 10px;
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
-                    <strong style="font-size: 1.2em;">Current Energy Cost</strong><br>
+                <div style="{col_format}">
+                    <strong style="font-size: 1.2em;">Next Energy Cost</strong><br>
                     <span style="font-size: 1.4em;">{next_price:.4f} p/kWh</span>
                 </div>
                 """,
@@ -46,14 +35,8 @@ def display_oven_costs(current_price, next_price, cost_now, current_cost_row):
     with col3:
         st.markdown(
             f"""
-                <div style="
-                    background-color: {st.session_state.primary_color};
-                    color: white;
-                    text-align: center;
-                    padding: 20px;
-                    border-radius: 10px;
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
-                    <strong style="font-size: 1.2em;">Current Oven Cost</strong><br>
+                <div style="{col_format}">
+                    <strong style="font-size: 1.2em;">Total Oven Cost</strong><br>
                     <span style="font-size: 1.4em;">£{cost_now:.4f}</span>
                 </div>
                 """,
@@ -70,17 +53,15 @@ def calculate_kettle_cost(current_price, next_price, run_time, power):
 st.markdown(
     """
     <style>
-    /* Style for the number input label */
     label[for="total-bake-time"] {
-        font-size: 1.5em; /* Increase label font size */
-        font-weight: bold; /* Make label bold */
+        font-size: 1.5em;
+        font-weight: bold;
     }
 
-    /* Style for the number input box */
     div[data-baseweb="input"] input {
-        font-size: 1.1em; /* Increase font size inside the input box */
-        padding: 10px; /* Add padding for a larger input field */
-        height: 60px; /* Set height for larger appearance */
+        font-size: 1.1em;
+        padding: 10px;
+        height: 60px;
     }
     </style>
     """,
@@ -116,13 +97,15 @@ def main():
         time_to_next_half_hour = 30 - current_time.minute % 30
 
         if time_to_next_half_hour > bake_time:
-            cost = oven_power * (current_price * (bake_time) / 60) / 100  # £
+            cost = oven_power * current_price * (bake_time) / 6000  # £
         else:
             cost = (
-                oven_power * (current_price * (time_to_next_half_hour) / 60) / 100
-                + oven_power
-                * (next_price * (bake_time - time_to_next_half_hour) / 60)
-                / 100
+                oven_power
+                * (
+                    current_price * time_to_next_half_hour
+                    + next_price * (bake_time - time_to_next_half_hour)
+                )
+                / 6000
             )  # £
 
         display_oven_costs(
@@ -131,8 +114,6 @@ def main():
             cost,
             current_cost_row,
         )
-
-        # st.write(f"The oven will cost approximate £{cost:.4f} to run.")
 
     else:
         st.error("API key not found.")
