@@ -33,6 +33,7 @@ st.session_state.textBoxColor = "#2A69A1"
 st.session_state.textColor = "#B5146A"
 
 load_css()
+st.session_state.primary_color = colors["primaryColor"]
 
 if "api_key" not in st.session_state:
     st.session_state.api_key = ""  # Default value

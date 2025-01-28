@@ -78,7 +78,7 @@ def get_current_time(toggle, df):
                     max_value=end_time,
                     value=start_time,
                     format="HH:mm",
-                    step=timedelta(minutes=30),
+                    step=timedelta(minutes=1),
                 )
 
             combined_datetime = datetime.combine(selected_date, selected_time.time())
