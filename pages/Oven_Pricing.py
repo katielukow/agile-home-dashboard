@@ -1,6 +1,8 @@
 import streamlit as st
 
-from agile_home_dashboard import get_current_cost, get_current_time
+from agile_home_dashboard import get_current_cost, get_current_time, load_css
+
+load_css()
 
 
 def main():
