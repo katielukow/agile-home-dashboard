@@ -17,10 +17,7 @@ def calculate_kettle_cost(current_price, next_price, run_time, power):
 def display_kettle_costs(
     current_price, next_price, cost_now, cost_next, current_cost_row, next_cost_row
 ):
-    (
-        col1,
-        col2,
-    ) = st.columns(2, gap="small")
+    col1, col2 = st.columns(2, gap="small")
     w = "95%"
     h = "120px"
     with col1:
