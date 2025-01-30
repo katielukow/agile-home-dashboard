@@ -4,6 +4,8 @@ import streamlit as st
 
 from agile_home_dashboard import get_current_cost, get_current_time, load_css
 
+load_css()
+
 
 def calculate_kettle_cost(current_price, next_price, run_time, power):
     cost_now = ((run_time / 3600) * current_price * power) / 100
@@ -15,67 +17,71 @@ def calculate_kettle_cost(current_price, next_price, run_time, power):
 def display_kettle_costs(
     current_price, next_price, cost_now, cost_next, current_cost_row, next_cost_row
 ):
-    st.markdown(
-        f"""
-        <div style="text-align: center;">
-            <strong>Current Energy Cost</strong><br>
-            <span style="font-size: 1.5em; color: black;">{current_price:.4f} p/kWh</span>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # Next energy cost
-    st.markdown(
-        f"""
-        <div style="text-align: center; margin-top: 20px;">
-            <strong>Next Energy Cost</strong><br>
-            <span style="font-size: 1.5em; color: black;">{next_price:.4f} p/kWh</span>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # Kettle current cost
-    st.markdown(
-        """
-        <div style="text-align: center; margin-top: 30px;">
-            <strong>Kettle Current Cost</strong><br>
-            <span style="font-size: 1.2em; color: black;">£{:.4f}</span><br>
-            <small>Valid until {}</small>
-        </div>
-        """.format(cost_now, current_cost_row.iloc[0]["valid_to"].strftime("%H:%M")),
-        unsafe_allow_html=True,
-    )
-
-    # Kettle next cost with color coding
-    color = "green" if cost_next <= cost_now else "red"
-    if next_price == 0:
-        color = "black"
+    col1, col2 = st.columns(2, gap="small")
+    w = "95%"
+    h = "120px"
+    with col1:
         st.markdown(
             f"""
-        <div style="text-align: center; margin-top: 30px;">
-            <strong>Kettle Next Cost</strong><br>
-            <span style="font-size: 1.2em; color: {color};">£{cost_next:.4f}</span><br>
-            <small>The next kettle cost is not available</small>
+            <div style="display: flex; justify-content: center;">
+                <div style="{st.session_state.col_format};
+                    height: {h};
+                    width: {w};">
+                    <strong>Current Energy Cost</strong><br>
+                    <span style="font-size: 1.5em;">{current_price:.4f} p/kWh</span>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with col2:
+        st.markdown(
+            f"""
+        <div style="display: flex; justify-content: center;">
+            <div style="{st.session_state.col_format};
+            height: {h};
+            width: {w};">
+                <strong>Next Energy Cost</strong><br>
+                <span style="font-size: 1.5em;">{next_price:.4f} p/kWh</span>
+            </div>
         </div>
         """,
             unsafe_allow_html=True,
         )
-    else:
+
+    st.markdown("<div style='margin-bottom: 30px;'></div>", unsafe_allow_html=True)
+
+    col3, col4 = st.columns(2, gap="small")
+    with col3:
         st.markdown(
-            """
-            <div style="text-align: center; margin-top: 30px;">
-                <strong>Kettle Next Cost</strong><br>
-                <span style="font-size: 1.2em; color: {};">£{:.4f}</span><br>
-                <small>From {} to {}</small>
+            f"""
+            <div style="display: flex; justify-content: center;">
+                <div style="{st.session_state.col_format};
+                height: {h};
+                width: {w};">
+                    <strong>Current Kettle Cost</strong><br>
+                    <span style="font-size: 1.5em;">£{cost_now:.4f}</span>
+                    <span style="font-size: 1em;">Valid until {current_cost_row.iloc[0]["valid_to"].strftime("%H:%M")}</span>
+                </div>
             </div>
-            """.format(
-                color,
-                cost_next,
-                next_cost_row["valid_from"].strftime("%H:%M"),
-                next_cost_row["valid_to"].strftime("%H:%M"),
-            ),
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with col4:
+        st.markdown(
+            f"""
+            <div style="display: flex; justify-content: center;">
+                <div style="{st.session_state.col_format};
+                height: {h};
+                width: {w};">
+                    <strong>Next Kettle Cost</strong><br>
+                    <span style="font-size: 1.5em;">£{cost_next:.4f}</span>
+                    <span style="font-size: 1em;">Valid from {next_cost_row["valid_from"].strftime("%H:%M")} to {next_cost_row["valid_to"].strftime("%H:%M")} </span>
+                </div>
+            </div>
+            """,
             unsafe_allow_html=True,
         )
 
@@ -124,20 +130,68 @@ def plot_kettle_timing():
     st.plotly_chart(fig)
 
 
-color = "#B87272"
-load_css()
+st.markdown(
+    """
+    <style>{
+        font-size: 1.5em;
+        font-weight: bold;
+    }
+
+    div[data-baseweb="input"] input {
+        font-size: 1.1em;
+        padding: 10px;
+        height: 60px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 
 def main():
     st.title("Kettle Pricing on Octopus Agile")
     if st.session_state.df is not None:
-        st.write("How much does the kettle cost right now?")
+        st.markdown(
+            f"""
+                <div style="
+                    color: {st.session_state.font};
+                    border-radius: 10px;
+                    margin-bottom: 10px;">
+                    <span style="font-size: 1.1em;">Kettle run time [s]:</span><br>
+                </div>
+                """,
+            unsafe_allow_html=True,
+        )
 
         run_time = st.number_input(
-            "Kettle run time [s]:", min_value=0, max_value=10000, value=137
+            "Kettle run time [s]:",
+            min_value=0,
+            max_value=10000,
+            value=137,
+            label_visibility="collapsed",
         )
+
+        st.markdown(
+            f"""
+                <div style="
+                    color: {st.session_state.font};
+                    border-radius: 10px;
+                    margin-bottom: 10px;">
+                    <span style="font-size: 1.1em;">Kettle power [kW]:</span><br>
+                </div>
+                """,
+            unsafe_allow_html=True,
+        )
+
         power = st.number_input(
-            "Kettle power [kW]:", min_value=0.0, max_value=1e8, value=2.1
+            "Kettle power [kW]:",
+            min_value=0.0,
+            max_value=1e8,
+            value=2.1,
+            label_visibility="collapsed",
         )
 
         # Toggle for manual time selection

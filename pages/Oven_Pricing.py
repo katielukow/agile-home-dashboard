@@ -8,12 +8,10 @@ load_css()
 def display_oven_costs(current_price, next_price, cost_now, current_cost_row):
     col1, col2, col3 = st.columns(3)
 
-    col_format = f"background-color: {st.session_state.primary_color}; color: white; text-align: center; padding: 20px; border-radius: 10px;"
-
     with col1:
         st.markdown(
             f"""
-            <div style="{col_format}">
+            <div style="{st.session_state.col_format}">
                 <strong style="font-size: 1.2em;">Current Energy Cost</strong><br>
                 <span style="font-size: 1.4em;">{current_price:.4f} p/kWh</span>
             </div>
@@ -24,7 +22,7 @@ def display_oven_costs(current_price, next_price, cost_now, current_cost_row):
     with col2:
         st.markdown(
             f"""
-                <div style="{col_format}">
+                <div style="{st.session_state.col_format}">
                     <strong style="font-size: 1.2em;">Next Energy Cost</strong><br>
                     <span style="font-size: 1.4em;">{next_price:.4f} p/kWh</span>
                 </div>
@@ -35,7 +33,7 @@ def display_oven_costs(current_price, next_price, cost_now, current_cost_row):
     with col3:
         st.markdown(
             f"""
-                <div style="{col_format}">
+                <div style="{st.session_state.col_format}">
                     <strong style="font-size: 1.2em;">Total Oven Cost</strong><br>
                     <span style="font-size: 1.4em;">£{cost_now:.4f}</span>
                 </div>
@@ -44,16 +42,9 @@ def display_oven_costs(current_price, next_price, cost_now, current_cost_row):
         )
 
 
-def calculate_kettle_cost(current_price, next_price, run_time, power):
-    cost_now = ((run_time / 3600) * current_price * power) / 100
-    cost_next = ((run_time / 3600) * next_price * power) / 100
-    return cost_now, cost_next
-
-
 st.markdown(
     """
-    <style>
-    label[for="total-bake-time"] {
+    <style>{
         font-size: 1.5em;
         font-weight: bold;
     }
@@ -62,6 +53,9 @@ st.markdown(
         font-size: 1.1em;
         padding: 10px;
         height: 60px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
     </style>
     """,
@@ -81,12 +75,13 @@ def main():
                 <div style="
                     color: {st.session_state.font};
                     border-radius: 10px;
-                    padding-bottom: 10px;">
+                    margin-bottom: 10px;">
                     <span style="font-size: 1.1em;">Total bake time [min]:</span><br>
                 </div>
                 """,
             unsafe_allow_html=True,
         )
+
         bake_time = st.number_input(
             "Total bake time [min]: ", value=20, label_visibility="collapsed"
         )
