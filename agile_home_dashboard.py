@@ -7,12 +7,10 @@ import requests
 import streamlit as st
 
 
-def fetch_data(api_key):
+def fetch_data(api_key, url):
     if api_key is None:
         st.write("Please enter an API key.")
         return None
-
-    url = "https://api.octopus.energy/v1/products/AGILE-24-10-01/electricity-tariffs/E-1R-AGILE-24-10-01-H/standard-unit-rates/"
 
     # Encode the API key for Basic Authentication
     auth_header = base64.b64encode(f"{api_key}:".encode()).decode("utf-8")

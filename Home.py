@@ -40,8 +40,15 @@ st.session_state.api_key = st.text_input(
     "Enter your Octopus Energy API key:", st.session_state.api_key
 )
 
+# Website to find the correct url for different tarrifs
+# https://energy-stats.uk/octopus-tracker-southern-england/
+
+url = "https://api.octopus.energy/v1/products/AGILE-24-10-01/electricity-tariffs/E-1R-AGILE-24-10-01-H/standard-unit-rates/"
 api_key = st.session_state.api_key
-st.session_state.df = fetch_data(api_key)
+st.session_state.df = fetch_data(api_key, url)
+
+url_tracker_e = "https://api.octopus.energy/v1/products/SILVER-24-10-01/electricity-tariffs/E-1R-SILVER-24-10-01-H/standard-unit-rates/"
+url_tracker_g = "https://api.octopus.energy/v1/products/SILVER-24-10-01/gas-tariffs/G-1R-SILVER-24-10-01-H/standard-unit-rates/"
 
 day_to_plot = st.radio("Select day:", options=["Today", "Tomorrow"], index=0)
 if day_to_plot == "Today":
