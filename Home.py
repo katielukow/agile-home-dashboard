@@ -22,18 +22,17 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-plotMarkerColor = "#7DBDF5"  # plot marker colour
-
 config = load_config()
 colors = config["theme"]
 st.session_state.bg_color = colors["backgroundColor"]
 st.session_state.font = colors["textColor"]
-st.session_state.marker = plotMarkerColor
+st.session_state.marker = "#7DBDF5"
 st.session_state.textBoxColor = "#2A69A1"
 st.session_state.textColor = "#B5146A"
+st.session_state.primary_color = colors["primaryColor"]
 
 load_css()
-st.session_state.primary_color = colors["primaryColor"]
+
 
 if "api_key" not in st.session_state:
     st.session_state.api_key = ""  # Default value

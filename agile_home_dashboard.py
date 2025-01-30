@@ -135,3 +135,5 @@ def load_css():
         """,
         unsafe_allow_html=True,
     )
+
+    st.session_state.col_format = f"background-color: {st.session_state.primary_color}; color: white; text-align: center; padding: 20px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-direction: column;"
