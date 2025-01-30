@@ -78,7 +78,7 @@ def get_current_time(toggle, df):
                     max_value=end_time,
                     value=start_time,
                     format="HH:mm",
-                    step=timedelta(minutes=30),
+                    step=timedelta(minutes=1),
                 )
 
             combined_datetime = datetime.combine(selected_date, selected_time.time())
@@ -135,3 +135,5 @@ def load_css():
         """,
         unsafe_allow_html=True,
     )
+
+    st.session_state.col_format = f"background-color: {st.session_state.primary_color}; color: white; text-align: center; padding: 20px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-direction: column;"
