@@ -9,9 +9,10 @@ description = "A simple Streamlit app"
 authors = [{name = "Katie Lukow"}]
 requires-python = ">=3.10"
 dependencies = [
-"streamlit>=1.41.0",
-"plotly>=5.0",
-"altair<5.0"
+    "streamlit>=1.41.0",
+    "plotly>=5.0",
+    "altair<5.0",
+    "scipy>=1.0.0 "
 ]
 
 [project.optional-dependencies]

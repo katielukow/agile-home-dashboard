@@ -1,15 +1,20 @@
-import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
 from agile_home_dashboard import get_current_cost, get_current_time, load_css
+from utils import cp, kappa, kettle_energy, kettle_timing
 
 load_css()
 
 
-def calculate_kettle_cost(current_price, next_price, run_time, power):
-    cost_now = ((run_time / 3600) * current_price * power) / 100
-    cost_next = ((run_time / 3600) * next_price * power) / 100
+def calculate_kettle_cost(current_price, next_price, init_temp, mass):
+    """
+    Calculates the kettle cost
+    """
+    energy = kettle_energy(init_temp, cp, mass / 1000, kappa)
+    cost_now = energy / (3600) * current_price / 100
+    cost_next = energy / (3600) * next_price / 100
+
     return cost_now, cost_next
 
 
@@ -88,14 +93,6 @@ def display_kettle_costs(
 
 # Function to plot kettle timing
 def plot_kettle_timing():
-    kettle_timing = pd.DataFrame(
-        {
-            "Volume [mL]": [600, 550, 350, 1100, 637, 804, 600, 570, 500, 830],
-            "Time [s]": [137, 135, 98, 237, 148, 178, 150, 125, 130, 205],
-            "Starting Temp [C]": [18, 18, 12, 12, 15, 11, 16, 13, 12, 10],
-        }
-    )
-
     fig = go.Figure()
     fig.add_trace(
         go.Scatter(
@@ -117,12 +114,12 @@ def plot_kettle_timing():
             font=dict(color=st.session_state.font),
         ),
         xaxis=dict(
-            title="Time",
+            title="Volume [mL]",
             title_font=dict(color=st.session_state.font),
             tickfont=dict(color=st.session_state.font),
         ),
         yaxis=dict(
-            title="Price [p/kWh]",
+            title="Time [s]",
             title_font=dict(color=st.session_state.font),
             tickfont=dict(color=st.session_state.font),
         ),
@@ -160,17 +157,17 @@ def main():
                     color: {st.session_state.font};
                     border-radius: 10px;
                     margin-bottom: 10px;">
-                    <span style="font-size: 1.1em;">Kettle run time [s]:</span><br>
+                    <span style="font-size: 1.1em;">Amount of water [mL]:</span><br>
                 </div>
                 """,
             unsafe_allow_html=True,
         )
 
-        run_time = st.number_input(
-            "Kettle run time [s]:",
+        mass = st.number_input(
+            "Amount of water [mL]",
             min_value=0,
             max_value=10000,
-            value=137,
+            value=550,
             label_visibility="collapsed",
         )
 
@@ -180,17 +177,17 @@ def main():
                     color: {st.session_state.font};
                     border-radius: 10px;
                     margin-bottom: 10px;">
-                    <span style="font-size: 1.1em;">Kettle power [kW]:</span><br>
+                    <span style="font-size: 1.1em;">Initial Temperature [C]:</span><br>
                 </div>
                 """,
             unsafe_allow_html=True,
         )
 
-        power = st.number_input(
-            "Kettle power [kW]:",
+        init_temperature = st.number_input(
+            "Initial Temperature [C]",
             min_value=0.0,
             max_value=1e8,
-            value=2.1,
+            value=15.0,
             label_visibility="collapsed",
         )
 
@@ -204,7 +201,7 @@ def main():
         (
             cost_now,
             cost_next,
-        ) = calculate_kettle_cost(current_price, next_price, run_time, power)
+        ) = calculate_kettle_cost(current_price, next_price, init_temperature, mass)
 
         if current_price is not None:
             display_kettle_costs(
