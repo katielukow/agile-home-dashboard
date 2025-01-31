@@ -17,55 +17,13 @@ def calculate_kettle_cost(current_price, next_price, run_time, power):
 def display_kettle_costs(
     current_price, next_price, cost_now, cost_next, current_cost_row, next_cost_row
 ):
-    (
-        col1,
-        col2,
-    ) = st.columns(2, gap="small")
+    col1, col2 = st.columns(2, gap="small")
     w = "95%"
     h = "120px"
     with col1:
         st.markdown(
             f"""
-            <div style="display: flex; justify-content: center;">
-                <div style="{st.session_state.col_format};
-                    height: {h};
-                    width: {w};">
-                    <strong>Current Energy Cost</strong><br>
-                    <span style="font-size: 1.5em;">{current_price:.4f} p/kWh</span>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    # Next energy cost
-    st.markdown(
-        f"""
-        <div style="text-align: center; margin-top: 20px;">
-            <strong>Next Energy Cost</strong><br>
-            <span style="font-size: 1.5em; color: black;">{next_price:.4f} p/kWh</span>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # Kettle current cost
-    st.markdown(
-        """
-        <div style="text-align: center; margin-top: 30px;">
-            <strong>Kettle Current Cost</strong><br>
-            <span style="font-size: 1.2em; color: black;">£{:.4f}</span><br>
-            <small>Valid until {}</small>
-        </div>
-        """.format(cost_now, current_cost_row.iloc[0]["valid_to"].strftime("%H:%M")),
-        unsafe_allow_html=True,
-    )
-
-    # Kettle next cost with color coding
-    if next_price == 0:
-        st.markdown(
-            f"""
-            <div style="display: flex; justify-content: center;">
+            <div style="display: flex; justify-content: center;padding-bottom:20px;">
                 <div style="{st.session_state.col_format};
                     height: {h};
                     width: {w};">
@@ -80,7 +38,7 @@ def display_kettle_costs(
     with col2:
         st.markdown(
             f"""
-        <div style="display: flex; justify-content: center;">
+        <div style="display: flex; justify-content: center;padding-bottom:20px;">
             <div style="{st.session_state.col_format};
             height: {h};
             width: {w};">
@@ -92,13 +50,13 @@ def display_kettle_costs(
             unsafe_allow_html=True,
         )
 
-    st.markdown("<div style='margin-bottom: 30px;'></div>", unsafe_allow_html=True)
+    # st.markdown("<div style='margin-bottom: 30px;'></div>", unsafe_allow_html=True)
 
     col3, col4 = st.columns(2, gap="small")
     with col3:
         st.markdown(
             f"""
-            <div style="display: flex; justify-content: center;">
+            <div style="display: flex; justify-content: center;padding-bottom:20px;">
                 <div style="{st.session_state.col_format};
                 height: {h};
                 width: {w};">
@@ -114,7 +72,7 @@ def display_kettle_costs(
     with col4:
         st.markdown(
             f"""
-            <div style="display: flex; justify-content: center;">
+            <div style="display: flex; justify-content: center;padding-bottom:20px;">
                 <div style="{st.session_state.col_format};
                 height: {h};
                 width: {w};">
