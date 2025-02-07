@@ -1,4 +1,7 @@
+from datetime import datetime, timedelta
+
 import plotly.graph_objects as go
+import pytz
 import streamlit as st
 
 from agile_home_dashboard import get_current_cost, get_current_time, load_css
@@ -89,6 +92,19 @@ def display_kettle_costs(
             """,
             unsafe_allow_html=True,
         )
+
+
+def get_cheapest_time(df, forward_time):
+    target_start = datetime.now(pytz.UTC)
+    target_end = target_start + timedelta(hours=forward_time)
+    df_time = df[
+        (df["valid_to"] <= target_end) & (df["valid_from"] >= target_start)
+    ].copy()
+
+    if df_time.empty:
+        return None
+    else:
+        return df_time.loc[df_time["value_inc_vat"].idxmin()]
 
 
 # Function to plot kettle timing
@@ -215,7 +231,10 @@ def main():
         else:
             st.write("No pricing data available for the current time.")
 
-        st.markdown("##")
+        forward_time = st.number_input("Forward time [hr]:", value=1.0)
+        cheapest_time = get_cheapest_time(st.session_state.df, forward_time)
+        st.write(f"Cheapest time: {cheapest_time['valid_from'].strftime('%H:%M')}")
+        # st.markdown("##")
         plot_kettle_timing()
     else:
         st.error("API key not found.")

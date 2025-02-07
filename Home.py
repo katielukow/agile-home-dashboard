@@ -8,12 +8,7 @@ import streamlit as st
 import toml
 
 from agile_home_dashboard import fetch_data, get_current_cost, load_css
-
-
-# Load the TOML file
-def load_config(file_path=".streamlit/config.toml"):
-    return toml.load(file_path)
-
+from utils import cp, kappa, kettle_energy
 
 st.set_page_config(
     page_title="Agile Daily Overview",
@@ -21,6 +16,12 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+
+# Load the TOML file
+def load_config(file_path=".streamlit/config.toml"):
+    return toml.load(file_path)
+
 
 config = load_config()
 colors = config["theme"]
@@ -38,6 +39,8 @@ load_css()
 url = "https://api.octopus.energy/v1/products/AGILE-24-10-01/electricity-tariffs/E-1R-AGILE-24-10-01-H/standard-unit-rates/"
 url_tracker_e = "https://api.octopus.energy/v1/products/SILVER-24-10-01/electricity-tariffs/E-1R-SILVER-24-10-01-H/standard-unit-rates/"
 url_tracker_g = "https://api.octopus.energy/v1/products/SILVER-24-10-01/gas-tariffs/G-1R-SILVER-24-10-01-H/standard-unit-rates/"
+
+st.session_state.df = None
 
 
 def plot_data():
@@ -149,26 +152,30 @@ def get_optimal_coffee_time(df, current_time):
         else current_time.date()
     )
 
-    target_start = datetime.combine(coffee_day, time(7, 0))
-    target_end = datetime.combine(coffee_day, time(10, 0))
+    mass = 650
+    init_temp = 17
+    energy = kettle_energy(init_temp, cp, mass / 1000, kappa)
+
+    target_start = datetime.combine(coffee_day, time(7, 30))
+    target_end = datetime.combine(coffee_day, time(9, 30))
+    # ideal_time = datetime.combine(coffee_day, time(8, 0))
 
     if df["valid_from"].dt.tz is not None:  # If DataFrame timestamps have timezone info
         target_start = target_start.replace(tzinfo=df["valid_from"].dt.tz)
         target_end = target_end.replace(tzinfo=df["valid_from"].dt.tz)
 
-    df_coffee = df[(df["valid_to"] <= target_end) & (df["valid_from"] > target_start)]
+    df_coffee = df[(df["valid_to"] <= target_end) & (df["valid_from"] >= target_start)]
+    df_coffee["cost"] = round(energy / (3600) * df_coffee["value_inc_vat"] / 100, 4)
 
     if df_coffee.empty:
         return None
     else:
         return (
-            df_coffee.loc[df_coffee["value_inc_vat"].idxmin()]["valid_from"]
-            if df_coffee is not None
-            else None
+            df_coffee.loc[df_coffee["cost"].idxmin()] if df_coffee is not None else None
         )
 
 
-def display_current_costs(current_time, coffee_time):
+def display_current_costs(current_time):
     cost_now, cost_next, current_row, next_row = get_current_cost(
         st.session_state.df, current_time
     )
@@ -176,7 +183,9 @@ def display_current_costs(current_time, coffee_time):
         st.session_state.df_tracker_e, current_time
     )
 
+    coffee_best = get_optimal_coffee_time(st.session_state.df, datetime.now(pytz.UTC))
     col1, col2, col3 = st.columns(3, gap="small")
+
     w = "95%"
     h = "120px"
     with col1:
@@ -186,15 +195,15 @@ def display_current_costs(current_time, coffee_time):
                 <div style="{st.session_state.col_format};
                     height: {h};
                     width: {w};">
-                    <strong>Current Energy Cost</strong><br>
-                    <span style="font-size: 1.5em;">{cost_now:.4f} p/kWh</span>
+                    <strong>Current Price</strong><br>
+                    <span style="font-size: 1.3em;">{cost_now:.2f} p/kWh</span>
                 </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-    if coffee_time is not None:
+    if coffee_best is not None:
         with col2:
             st.markdown(
                 f"""
@@ -202,8 +211,8 @@ def display_current_costs(current_time, coffee_time):
                     <div style="{st.session_state.col_format};
                         height: {h};
                         width: {w};">
-                        <strong>The best time to make coffee is</strong><br>
-                        <span style="font-size: 1.5em;">{coffee_time.strftime("%H:%M")}</span>
+                        <strong>The best time to make coffee is:</strong><br>
+                        <span style="font-size: 1.3em;">{coffee_best["valid_from"].strftime("%H:%M")}</span>
                     </div>
                 </div>
                 """,
@@ -218,7 +227,7 @@ def display_current_costs(current_time, coffee_time):
                         height: {h};
                         width: {w};">
                         <strong>The best time to make coffee is:</strong><br>
-                        <span style="font-size: 1.5em;">Data not available yet</span>
+                        <span style="font-size: 1.3em;">Data not available yet</span>
                     </div>
                 </div>
                 """,
@@ -236,7 +245,7 @@ def display_current_costs(current_time, coffee_time):
                         height: {h};
                         width: {w};">
                         <strong>Tomorrow's Tracker Trend</strong><br>
-                        <span style="font-size: 1.5em;">{symb} {tracker_delta:.1f}%</span>
+                        <span style="font-size: 1.3em;">{symb} {abs(tracker_delta):.1f}%</span>
                     </div>
                 </div>
                 """,
@@ -251,7 +260,7 @@ def display_current_costs(current_time, coffee_time):
                         height: {h};
                         width: {w};">
                         <strong>Tomorrow's Tracker Trend</strong><br>
-                        <span style="font-size: 1.5em;">Data not available yet</span>
+                        <span style="font-size: 1.3em;">Data not available yet</span>
                     </div>
                 </div>
                 """,
@@ -269,22 +278,28 @@ def load_module(module_name, filepath):
     return module
 
 
-def main():
-    if "api_key" not in st.session_state:
-        st.session_state.api_key = ""  # Default value
+def clear_input():
+    st.session_state.temp = st.session_state.api_key
+    st.session_state.api_key = ""
 
-    st.session_state.api_key = st.text_input(
-        "Enter your Octopus Energy API key:", st.session_state.api_key
+
+def main():
+    if "temp" not in st.session_state:
+        st.session_state.temp = ""  # Default value
+
+    st.text_input(
+        "Enter your Octopus Energy API key:", key="api_key", on_change=clear_input
     )
 
-    api_key = st.session_state.api_key
-    st.session_state.df = fetch_data(api_key, url)
-    st.session_state.df_tracker_e = fetch_data(api_key, url_tracker_e)
+    api_key = st.session_state["temp"]
+
+    if st.session_state.df is None:
+        st.session_state.df = fetch_data(api_key, url)
+        st.session_state.df_tracker_e = fetch_data(api_key, url_tracker_e)
 
     st.markdown(" ")  # Add some space between the input field and the plot
-    coffee_time = get_optimal_coffee_time(st.session_state.df, datetime.now(pytz.UTC))
-    display_current_costs(datetime.now(pytz.UTC), coffee_time)
-
+    if st.session_state.df is not None:
+        display_current_costs(datetime.now(pytz.UTC))
     plot_data()
 
 
