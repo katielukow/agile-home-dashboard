@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, time, timedelta
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -7,13 +7,8 @@ import pytz
 import streamlit as st
 import toml
 
-from agile_home_dashboard import fetch_data, load_css
-
-
-# Load the TOML file
-def load_config(file_path=".streamlit/config.toml"):
-    return toml.load(file_path)
-
+from agile_home_dashboard import fetch_data, get_current_cost, load_css
+from utils import cp, kappa, kettle_energy
 
 st.set_page_config(
     page_title="Agile Daily Overview",
@@ -21,6 +16,12 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+
+# Load the TOML file
+def load_config(file_path=".streamlit/config.toml"):
+    return toml.load(file_path)
+
 
 config = load_config()
 colors = config["theme"]
@@ -33,104 +34,228 @@ st.session_state.primary_color = colors["primaryColor"]
 
 load_css()
 
+# Website to find the correct url for different tarrifs
+# is: https://energy-stats.uk/octopus-tracker-southern-england/
+url = "https://api.octopus.energy/v1/products/AGILE-24-10-01/electricity-tariffs/E-1R-AGILE-24-10-01-H/standard-unit-rates/"
+url_tracker_e = "https://api.octopus.energy/v1/products/SILVER-24-10-01/electricity-tariffs/E-1R-SILVER-24-10-01-H/standard-unit-rates/"
+url_tracker_g = "https://api.octopus.energy/v1/products/SILVER-24-10-01/gas-tariffs/G-1R-SILVER-24-10-01-H/standard-unit-rates/"
 
-if "api_key" not in st.session_state:
-    st.session_state.api_key = ""  # Default value
-st.session_state.api_key = st.text_input(
-    "Enter your Octopus Energy API key:", st.session_state.api_key
-)
+st.session_state.df = None
 
-api_key = st.session_state.api_key
-st.session_state.df = fetch_data(api_key)
 
-day_to_plot = st.radio("Select day:", options=["Today", "Tomorrow"], index=0)
-if day_to_plot == "Today":
-    if st.session_state.df is None:
-        st.write("No data available for today.")
-    else:
-        df_today = st.session_state.df[
-            st.session_state.df["valid_from"].dt.date == datetime.now(pytz.UTC).date()
-        ]
-        fig_all = go.Figure()
-        fig_all.add_trace(
-            go.Bar(
-                x=df_today["valid_from"],  # Time column
-                y=df_today["value_inc_vat"],  # Price column
-                marker=dict(color=st.session_state.marker),  # Optional: Set bar color
-                name="Price [p/kWh]",  # Legend name
+def plot_data():
+    col1, col2 = st.columns([0.15, 0.85], vertical_alignment="center")
+
+    with col1:
+        day_to_plot = st.radio("Select day:", options=["Today", "Tomorrow"], index=0)
+    with col2:
+        if day_to_plot == "Today":
+            if st.session_state.df is None:
+                st.write("No data available for today.")
+            else:
+                df_today = st.session_state.df[
+                    st.session_state.df["valid_from"].dt.date
+                    == datetime.now(pytz.UTC).date()
+                ]
+                fig_all = go.Figure()
+                fig_all.add_trace(
+                    go.Bar(
+                        x=df_today["valid_from"],
+                        y=df_today["value_inc_vat"],
+                        marker=dict(color=st.session_state.marker),
+                        name="Price [p/kWh]",
+                    )
+                )
+
+                fig_all.update_layout(
+                    plot_bgcolor=st.session_state.bg_color,
+                    font=dict(
+                        color=st.session_state.font,
+                        size=14,
+                    ),
+                    title=dict(
+                        text="Agile Pricing",
+                        font=dict(color=st.session_state.font),
+                    ),
+                    xaxis=dict(
+                        title="Time",
+                        title_font=dict(color=st.session_state.font),
+                        tickfont=dict(color=st.session_state.font),
+                    ),
+                    yaxis=dict(
+                        title="Price [p/kWh]",
+                        title_font=dict(color=st.session_state.font),
+                        tickfont=dict(color=st.session_state.font),
+                    ),
+                )
+                st.plotly_chart(fig_all)
+        elif day_to_plot == "Tomorrow":
+            tomorrow_date = (datetime.now(pytz.UTC) + pd.Timedelta(days=1)).date()
+            df_tom = st.session_state.df[
+                st.session_state.df["valid_from"].dt.date == tomorrow_date
+            ]
+
+            if df_tom.empty:
+                st.write("No data available for tomorrow.")
+            else:
+                fig_all = go.Figure()
+                fig_all.add_trace(
+                    go.Bar(
+                        x=df_tom["valid_from"],
+                        y=df_tom["value_inc_vat"],
+                        marker=dict(color=st.session_state.marker),
+                        name="Price [p/kWh]",
+                    )
+                )
+
+                fig_all.update_layout(
+                    plot_bgcolor=st.session_state.bg_color,
+                    font=dict(
+                        color=st.session_state.font,
+                        size=14,
+                    ),
+                    title=dict(
+                        text="Agile Pricing",
+                        font=dict(color=st.session_state.font),
+                    ),
+                    xaxis=dict(
+                        title="Time",
+                        title_font=dict(color=st.session_state.font),
+                        tickfont=dict(color=st.session_state.font),
+                    ),
+                    yaxis=dict(
+                        title="Price [p/kWh]",
+                        title_font=dict(color=st.session_state.font),
+                        tickfont=dict(color=st.session_state.font),
+                    ),
+                )
+                st.plotly_chart(fig_all)
+
+
+# """
+# Get the optimal time to make coffee either this morning or tomorrow morning.
+# Uses the date as tomorrow if it is after 10am, otherwise use today. Default mass, temperature is 650ml, 17degC to represent two cups of coffee at winter room temp.
+# """
+
+
+def get_optimal_coffee_time(df, current_time):
+    coffee_day = (
+        current_time.date() + timedelta(days=1)
+        if current_time.hour > 10
+        else current_time.date()
+    )
+
+    mass = 650
+    init_temp = 17
+    energy = kettle_energy(init_temp, cp, mass / 1000, kappa)
+
+    target_start, target_end = (
+        datetime.combine(coffee_day, t).replace(tzinfo=df["valid_from"].dt.tz)
+        if df["valid_from"].dt.tz is not None
+        else datetime.combine(coffee_day, t)
+        for t in (time(7, 30), time(9, 30))
+    )
+
+    df_coffee = df[(df["valid_to"] <= target_end) & (df["valid_from"] >= target_start)]
+
+    if df_coffee.empty:
+        return None
+
+    df_coffee["cost"] = round(energy / (3600) * df_coffee["value_inc_vat"] / 100, 4)
+    return df_coffee.loc[df_coffee["cost"].idxmin()] if df_coffee is not None else None
+
+
+def display_current_costs(current_time):
+    cost_now, cost_next, current_row, next_row = get_current_cost(
+        st.session_state.df, current_time
+    )
+    tracker_now, tracker_next, current_row_e, next_row_e = get_current_cost(
+        st.session_state.df_tracker_e, current_time
+    )
+
+    coffee_best = get_optimal_coffee_time(st.session_state.df, datetime.now(pytz.UTC))
+    col1, col2, col3 = st.columns(3, gap="small")
+
+    w = "95%"
+    h = "120px"
+    with col1:
+        st.markdown(
+            f"""
+            <div style="display: flex; justify-content: center;">
+                <div style="{st.session_state.col_format};
+                    height: {h};
+                    width: {w};">
+                    <strong>Current Price</strong><br>
+                    <span style="font-size: 1.3em;">{cost_now:.2f} p/kWh</span>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    if coffee_best is not None:
+        with col2:
+            st.markdown(
+                f"""
+                <div style="display: flex; justify-content: center;">
+                    <div style="{st.session_state.col_format};
+                        height: {h};
+                        width: {w};">
+                        <strong>The best time to make coffee is:</strong><br>
+                        <span style="font-size: 1.3em;">{coffee_best["valid_from"].strftime("%H:%M")}</span>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
             )
-        )
-
-        fig_all.update_layout(
-            plot_bgcolor=st.session_state.bg_color,  # Set the plot area background to white
-            font=dict(
-                color=st.session_state.font,  # Set text color
-                size=14,  # Optional: Adjust text size for better visibility
-            ),
-            title=dict(
-                text="Agile Pricing",  # Add a title
-                font=dict(color=st.session_state.font),  # Set title text color
-            ),
-            xaxis=dict(
-                title="Time",  # Label the x-axis
-                title_font=dict(color=st.session_state.font),  # X-axis title color
-                tickfont=dict(color=st.session_state.font),  # X-axis tick color
-            ),
-            yaxis=dict(
-                title="Price [p/kWh]",  # Label the y-axis
-                title_font=dict(color=st.session_state.font),  # Y-axis title color
-                tickfont=dict(color=st.session_state.font),  # Y-axis tick color
-            ),
-        )
-        st.plotly_chart(fig_all)
-elif day_to_plot == "Tomorrow":
-    tomorrow_date = (datetime.now(pytz.UTC) + pd.Timedelta(days=1)).date()
-    df_tom = st.session_state.df[
-        st.session_state.df["valid_from"].dt.date == tomorrow_date
-    ]
-
-    if df_tom.empty:
-        st.write("No data available for tomorrow.")
     else:
-        fig_all = go.Figure()
-        fig_all.add_trace(
-            go.Bar(
-                x=df_tom["valid_from"],  # Time column
-                y=df_tom["value_inc_vat"],  # Price column
-                marker=dict(color=st.session_state.marker),  # Optional: Set bar color
-                name="Price [p/kWh]",  # Legend name
+        with col2:
+            st.markdown(
+                f"""
+                <div style="display: flex; justify-content: center;">
+                    <div style="{st.session_state.col_format};
+                        height: {h};
+                        width: {w};">
+                        <strong>The best time to make coffee is:</strong><br>
+                        <span style="font-size: 1.3em;">Data not available yet</span>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
             )
-        )
 
-        fig_all.update_layout(
-            plot_bgcolor=st.session_state.bg_color,  # Set the plot area background to white
-            font=dict(
-                color=st.session_state.font,  # Set text color
-                size=14,  # Optional: Adjust text size for better visibility
-            ),
-            title=dict(
-                text="Agile Pricing",  # Add a title
-                font=dict(color=st.session_state.font),  # Set title text color
-            ),
-            xaxis=dict(
-                title="Time",  # Label the x-axis
-                title_font=dict(color=st.session_state.font),  # X-axis title color
-                tickfont=dict(color=st.session_state.font),  # X-axis tick color
-            ),
-            yaxis=dict(
-                title="Price [p/kWh]",  # Label the y-axis
-                title_font=dict(color=st.session_state.font),  # Y-axis title color
-                tickfont=dict(color=st.session_state.font),  # Y-axis tick color
-            ),
-        )
-        st.plotly_chart(fig_all)
-
-# st.cache_data.clear()
-# file_path = os.path.join(PAGES_DIR, '1_All_Data.py')
-
-
-# st.write(pd.DataFrame(kettle_timing))
-PAGES_DIR = "pages"
+    if tracker_next is not None:
+        tracker_delta = (tracker_next - tracker_now) / tracker_now * 100
+        symb = "&uarr;" if tracker_delta > 0 else "&darr;"
+        with col3:
+            st.markdown(
+                f"""
+                <div style="display: flex; justify-content: center;">
+                    <div style="{st.session_state.col_format};
+                        height: {h};
+                        width: {w};">
+                        <strong>Tomorrow's Tracker Trend</strong><br>
+                        <span style="font-size: 1.3em;">{symb} {abs(tracker_delta):.1f}%</span>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+    else:
+        with col3:
+            st.markdown(
+                f"""
+                <div style="display: flex; justify-content: center;">
+                    <div style="{st.session_state.col_format};
+                        height: {h};
+                        width: {w};">
+                        <strong>Tomorrow's Tracker Trend</strong><br>
+                        <span style="font-size: 1.3em;">Data not available yet</span>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
 
 # Function to load a module from a file
@@ -143,7 +268,37 @@ def load_module(module_name, filepath):
     return module
 
 
+def clear_input():
+    st.session_state.temp = st.session_state.api_key
+    st.session_state.api_key = ""
+
+
+def main():
+    if "temp" not in st.session_state:
+        st.session_state.temp = ""  # Default value
+
+    st.text_input(
+        "Enter your Octopus Energy API key:", key="api_key", on_change=clear_input
+    )
+
+    api_key = st.session_state["temp"]
+
+    if st.session_state.df is None:
+        st.session_state.df = fetch_data(api_key, url)
+        st.session_state.df_tracker_e = fetch_data(api_key, url_tracker_e)
+
+    st.markdown(" ")  # Add some space between the input field and the plot
+    if st.session_state.df is not None:
+        display_current_costs(datetime.now(pytz.UTC))
+    plot_data()
+
+
+# Run the application
+if __name__ == "__main__":
+    main()
+
 # Get a list of pages
+PAGES_DIR = "pages"
 page_files = [f for f in os.listdir(PAGES_DIR) if f.endswith(".py")]
 pages = {
     f.replace(".py", "").replace("_", " ").title(): os.path.join(PAGES_DIR, f)
