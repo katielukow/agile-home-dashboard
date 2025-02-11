@@ -35,7 +35,7 @@ st.session_state.primary_color = colors["primaryColor"]
 load_css()
 
 # Website to find the correct url for different tarrifs
-# https://energy-stats.uk/octopus-tracker-southern-england/
+# is: https://energy-stats.uk/octopus-tracker-southern-england/
 url = "https://api.octopus.energy/v1/products/AGILE-24-10-01/electricity-tariffs/E-1R-AGILE-24-10-01-H/standard-unit-rates/"
 url_tracker_e = "https://api.octopus.energy/v1/products/SILVER-24-10-01/electricity-tariffs/E-1R-SILVER-24-10-01-H/standard-unit-rates/"
 url_tracker_g = "https://api.octopus.energy/v1/products/SILVER-24-10-01/gas-tariffs/G-1R-SILVER-24-10-01-H/standard-unit-rates/"
@@ -60,38 +60,32 @@ def plot_data():
                 fig_all = go.Figure()
                 fig_all.add_trace(
                     go.Bar(
-                        x=df_today["valid_from"],  # Time column
-                        y=df_today["value_inc_vat"],  # Price column
-                        marker=dict(
-                            color=st.session_state.marker
-                        ),  # Optional: Set bar color
-                        name="Price [p/kWh]",  # Legend name
+                        x=df_today["valid_from"],
+                        y=df_today["value_inc_vat"],
+                        marker=dict(color=st.session_state.marker),
+                        name="Price [p/kWh]",
                     )
                 )
 
                 fig_all.update_layout(
-                    plot_bgcolor=st.session_state.bg_color,  # Set the plot area background to white
+                    plot_bgcolor=st.session_state.bg_color,
                     font=dict(
-                        color=st.session_state.font,  # Set text color
-                        size=14,  # Optional: Adjust text size for better visibility
+                        color=st.session_state.font,
+                        size=14,
                     ),
                     title=dict(
-                        text="Agile Pricing",  # Add a title
-                        font=dict(color=st.session_state.font),  # Set title text color
+                        text="Agile Pricing",
+                        font=dict(color=st.session_state.font),
                     ),
                     xaxis=dict(
-                        title="Time",  # Label the x-axis
-                        title_font=dict(
-                            color=st.session_state.font
-                        ),  # X-axis title color
-                        tickfont=dict(color=st.session_state.font),  # X-axis tick color
+                        title="Time",
+                        title_font=dict(color=st.session_state.font),
+                        tickfont=dict(color=st.session_state.font),
                     ),
                     yaxis=dict(
-                        title="Price [p/kWh]",  # Label the y-axis
-                        title_font=dict(
-                            color=st.session_state.font
-                        ),  # Y-axis title color
-                        tickfont=dict(color=st.session_state.font),  # Y-axis tick color
+                        title="Price [p/kWh]",
+                        title_font=dict(color=st.session_state.font),
+                        tickfont=dict(color=st.session_state.font),
                     ),
                 )
                 st.plotly_chart(fig_all)
@@ -107,45 +101,44 @@ def plot_data():
                 fig_all = go.Figure()
                 fig_all.add_trace(
                     go.Bar(
-                        x=df_tom["valid_from"],  # Time column
-                        y=df_tom["value_inc_vat"],  # Price column
-                        marker=dict(
-                            color=st.session_state.marker
-                        ),  # Optional: Set bar color
-                        name="Price [p/kWh]",  # Legend name
+                        x=df_tom["valid_from"],
+                        y=df_tom["value_inc_vat"],
+                        marker=dict(color=st.session_state.marker),
+                        name="Price [p/kWh]",
                     )
                 )
 
                 fig_all.update_layout(
-                    plot_bgcolor=st.session_state.bg_color,  # Set the plot area background to white
+                    plot_bgcolor=st.session_state.bg_color,
                     font=dict(
-                        color=st.session_state.font,  # Set text color
-                        size=14,  # Optional: Adjust text size for better visibility
+                        color=st.session_state.font,
+                        size=14,
                     ),
                     title=dict(
-                        text="Agile Pricing",  # Add a title
-                        font=dict(color=st.session_state.font),  # Set title text color
+                        text="Agile Pricing",
+                        font=dict(color=st.session_state.font),
                     ),
                     xaxis=dict(
-                        title="Time",  # Label the x-axis
-                        title_font=dict(
-                            color=st.session_state.font
-                        ),  # X-axis title color
-                        tickfont=dict(color=st.session_state.font),  # X-axis tick color
+                        title="Time",
+                        title_font=dict(color=st.session_state.font),
+                        tickfont=dict(color=st.session_state.font),
                     ),
                     yaxis=dict(
-                        title="Price [p/kWh]",  # Label the y-axis
-                        title_font=dict(
-                            color=st.session_state.font
-                        ),  # Y-axis title color
-                        tickfont=dict(color=st.session_state.font),  # Y-axis tick color
+                        title="Price [p/kWh]",
+                        title_font=dict(color=st.session_state.font),
+                        tickfont=dict(color=st.session_state.font),
                     ),
                 )
                 st.plotly_chart(fig_all)
 
 
+# """
+# Get the optimal time to make coffee either this morning or tomorrow morning.
+# Uses the date as tomorrow if it is after 10am, otherwise use today. Default mass, temperature is 650ml, 17degC to represent two cups of coffee at winter room temp.
+# """
+
+
 def get_optimal_coffee_time(df, current_time):
-    # Get the date for tomorrow if it is after 10am, otherwise use today
     coffee_day = (
         current_time.date() + timedelta(days=1)
         if current_time.hour > 10
@@ -156,23 +149,20 @@ def get_optimal_coffee_time(df, current_time):
     init_temp = 17
     energy = kettle_energy(init_temp, cp, mass / 1000, kappa)
 
-    target_start = datetime.combine(coffee_day, time(7, 30))
-    target_end = datetime.combine(coffee_day, time(9, 30))
-    # ideal_time = datetime.combine(coffee_day, time(8, 0))
-
-    if df["valid_from"].dt.tz is not None:  # If DataFrame timestamps have timezone info
-        target_start = target_start.replace(tzinfo=df["valid_from"].dt.tz)
-        target_end = target_end.replace(tzinfo=df["valid_from"].dt.tz)
+    target_start, target_end = (
+        datetime.combine(coffee_day, t).replace(tzinfo=df["valid_from"].dt.tz)
+        if df["valid_from"].dt.tz is not None
+        else datetime.combine(coffee_day, t)
+        for t in (time(7, 30), time(9, 30))
+    )
 
     df_coffee = df[(df["valid_to"] <= target_end) & (df["valid_from"] >= target_start)]
-    df_coffee["cost"] = round(energy / (3600) * df_coffee["value_inc_vat"] / 100, 4)
 
     if df_coffee.empty:
         return None
-    else:
-        return (
-            df_coffee.loc[df_coffee["cost"].idxmin()] if df_coffee is not None else None
-        )
+
+    df_coffee["cost"] = round(energy / (3600) * df_coffee["value_inc_vat"] / 100, 4)
+    return df_coffee.loc[df_coffee["cost"].idxmin()] if df_coffee is not None else None
 
 
 def display_current_costs(current_time):

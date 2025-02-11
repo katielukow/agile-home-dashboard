@@ -58,8 +58,6 @@ def display_kettle_costs(
             unsafe_allow_html=True,
         )
 
-    # st.markdown("<div style='margin-bottom: 30px;'></div>", unsafe_allow_html=True)
-
     col3, col4 = st.columns(2, gap="small")
     with col3:
         st.markdown(
@@ -234,7 +232,7 @@ def main():
         forward_time = st.number_input("Forward time [hr]:", value=1.0)
         cheapest_time = get_cheapest_time(st.session_state.df, forward_time)
         st.write(f"Cheapest time: {cheapest_time['valid_from'].strftime('%H:%M')}")
-        # st.markdown("##")
+
         plot_kettle_timing()
     else:
         st.error("API key not found.")
