@@ -7,12 +7,11 @@ import requests
 import streamlit as st
 
 
-def fetch_data(api_key):
+@st.cache_data
+def fetch_data(api_key, url):
     if api_key is None:
         st.write("Please enter an API key.")
         return None
-
-    url = "https://api.octopus.energy/v1/products/AGILE-24-10-01/electricity-tariffs/E-1R-AGILE-24-10-01-H/standard-unit-rates/"
 
     # Encode the API key for Basic Authentication
     auth_header = base64.b64encode(f"{api_key}:".encode()).decode("utf-8")
@@ -66,19 +65,20 @@ def get_current_time(toggle, df):
         df = df[df["valid_from"].dt.date == selected_date]
 
         if not df.empty:
-            # Define slider bounds
             start_time = df["valid_from"].min().to_pydatetime()
             end_time = df["valid_from"].max().to_pydatetime()
 
-            # Slider in the second column
+            if "selected_time" not in st.session_state:
+                st.session_state.selected_time = datetime.now(pytz.UTC)
+
             with col2:
                 selected_time = st.slider(
                     "Select time:",
                     min_value=start_time,
                     max_value=end_time,
-                    value=start_time,
+                    value=st.session_state.selected_time,
                     format="HH:mm",
-                    step=timedelta(minutes=1),
+                    step=timedelta(minutes=5),
                 )
 
             combined_datetime = datetime.combine(selected_date, selected_time.time())

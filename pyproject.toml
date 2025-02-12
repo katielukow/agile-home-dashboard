@@ -4,14 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "Agile-Home-Dashboard"
-version = "0.0.1"
-description = "A simple Streamlit app"
+version = "0.1.0"
+description = "A dashboard for Octopus Agile users to optimise appliance usage"
 authors = [{name = "Katie Lukow"}]
 requires-python = ">=3.10"
 dependencies = [
-"streamlit>=1.41.0",
-"plotly>=5.0",
-"altair<5.0"
+    "streamlit>=1.41.0",
+    "plotly>=5.0",
+    "altair<5.0",
+    "scipy>=1.0.0 "
 ]
 
 [project.optional-dependencies]
