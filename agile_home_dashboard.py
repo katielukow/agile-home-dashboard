@@ -1,13 +1,18 @@
 import base64
-from datetime import datetime, timedelta
+from datetime import datetime as dtime
+from datetime import time, timedelta
 
 import pandas as pd
 import pytz
 import requests
 import streamlit as st
 
+diff = dtime.combine(
+    dtime.now(pytz.UTC).date(), time(16, 10), tzinfo=pytz.UTC
+) - dtime.now(pytz.UTC)
 
-@st.cache_data
+
+@st.cache_data(ttl=diff)
 def fetch_data(api_key, url):
     if api_key is None:
         st.write("Please enter an API key.")
@@ -47,7 +52,9 @@ def fetch_data(api_key, url):
 
 
 def get_current_time(toggle, df):
-    if toggle:
+    if not toggle:
+        return dtime.now(pytz.UTC)
+    else:
         col1, col2 = st.columns([1, 3])  # Adjust the column widths as needed
 
         # Day toggle in the first column
@@ -56,9 +63,9 @@ def get_current_time(toggle, df):
 
         # Determine the selected date
         selected_date = (
-            datetime.now(pytz.UTC).date()
+            dtime.now(pytz.UTC).date()
             if day_toggle == "Today"
-            else datetime.now(pytz.UTC).date() + timedelta(days=1)
+            else dtime.now(pytz.UTC).date() + timedelta(days=1)
         )
 
         # Filter DataFrame based on the selected date
@@ -69,7 +76,7 @@ def get_current_time(toggle, df):
             end_time = df["valid_from"].max().to_pydatetime()
 
             if "selected_time" not in st.session_state:
-                st.session_state.selected_time = datetime.now(pytz.UTC)
+                st.session_state.selected_time = dtime.now(pytz.UTC)
 
             with col2:
                 selected_time = st.slider(
@@ -81,15 +88,12 @@ def get_current_time(toggle, df):
                     step=timedelta(minutes=5),
                 )
 
-            combined_datetime = datetime.combine(selected_date, selected_time.time())
+            combined_datetime = dtime.combine(selected_date, selected_time.time())
+            return pd.to_datetime(pytz.UTC.localize(combined_datetime))
+
         else:
             st.warning(f"No data available for {day_toggle.lower()}!")
             return None
-
-        combined_datetime = datetime.combine(selected_date, selected_time.time())
-        return pd.to_datetime(pytz.UTC.localize(combined_datetime))
-
-    return datetime.now(pytz.UTC)
 
 
 def get_current_cost(df, current_time):
