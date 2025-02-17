@@ -94,9 +94,14 @@ def display_kettle_costs(
 
 def get_cheapest_time(df, forward_time):
     target_start = datetime.now(pytz.UTC)
-    target_end = target_start + timedelta(hours=forward_time)
+    rounded_minutes = (
+        datetime.now(pytz.UTC).minute // 30
+    ) * 30  # round down to the nearest 30 minutes for to include current price
+    target_start = target_start.replace(minute=rounded_minutes, second=0, microsecond=0)
+    target_end = datetime.now(pytz.UTC) + timedelta(hours=forward_time)
+
     df_time = df[
-        (df["valid_to"] <= target_end) & (df["valid_from"] >= target_start)
+        (df["valid_from"] <= target_end) & (df["valid_from"] >= target_start)
     ].copy()
 
     if df_time.empty:
@@ -229,7 +234,7 @@ def main():
         else:
             st.write("No pricing data available for the current time.")
 
-        forward_time = st.number_input("Forward time [hr]:", value=1.0)
+        forward_time = st.number_input("Forward time [hr]:", value=1.0, step=0.5)
         cheapest_time = get_cheapest_time(st.session_state.df, forward_time)
         st.write(f"Cheapest time: {cheapest_time['valid_from'].strftime('%H:%M')}")
 
