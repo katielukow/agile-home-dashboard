@@ -234,7 +234,7 @@ def main():
             )
         else:
             st.write("No pricing data available for the current time.")
-        st.write("Select forward time to find the cheapest time to boil the kettle.")
+        st.write("Select the length of time in the future to optimize the kettle boil.")
         col1, col2 = st.columns([2, 1], vertical_alignment="center")
         with col1:
             forward_time = st.number_input(
@@ -254,7 +254,6 @@ def main():
                     """,
                 unsafe_allow_html=True,
             )
-            # st.write(f"Cheapest time: {cheapest_time['valid_from'].strftime('%H:%M')}")
 
         plot_kettle_timing()
     else:
