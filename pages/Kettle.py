@@ -233,10 +233,27 @@ def main():
             )
         else:
             st.write("No pricing data available for the current time.")
-
-        forward_time = st.number_input("Forward time [hr]:", value=1.0, step=0.5)
-        cheapest_time = get_cheapest_time(st.session_state.df, forward_time)
-        st.write(f"Cheapest time: {cheapest_time['valid_from'].strftime('%H:%M')}")
+        st.write("Select forward time to find the cheapest time to boil the kettle.")
+        col1, col2 = st.columns([2, 1], vertical_alignment="center")
+        with col1:
+            forward_time = st.number_input(
+                "Forward time [hr]:", value=1.0, step=0.5, label_visibility="collapsed"
+            )
+        with col2:
+            cheapest_time = get_cheapest_time(st.session_state.df, forward_time)
+            st.markdown(
+                f"""
+                    <div style="display: flex; justify-content: center;padding-bottom:15px;">
+                        <div style="{st.session_state.col_format};
+                        height: {"40px"};
+                        width: {"95%"};">
+                            <span style="font-size: 1.2em;">{cheapest_time["valid_from"].strftime("%H:%M")} </span>
+                        </div>
+                    </div>
+                    """,
+                unsafe_allow_html=True,
+            )
+            # st.write(f"Cheapest time: {cheapest_time['valid_from'].strftime('%H:%M')}")
 
         plot_kettle_timing()
     else:
