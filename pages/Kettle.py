@@ -95,10 +95,10 @@ def display_kettle_costs(
 
 def get_cheapest_time(df, forward_time):
     target_start = dtime.now(pytz.UTC)
-    rounded_minutes = (
+    current_window = (
         dtime.now(pytz.UTC).minute // 30
     ) * 30  # round down to the nearest 30 minutes for to include current price
-    target_start = target_start.replace(minute=rounded_minutes, second=0, microsecond=0)
+    target_start = target_start.replace(minute=current_window, second=0, microsecond=0)
     target_end = dtime.now(pytz.UTC) + timedelta(hours=forward_time)
 
     df_time = df[
