@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import datetime as dtime
+from datetime import timedelta
 
 import plotly.graph_objects as go
 import pytz
@@ -93,12 +94,12 @@ def display_kettle_costs(
 
 
 def get_cheapest_time(df, forward_time):
-    target_start = datetime.now(pytz.UTC)
+    target_start = dtime.now(pytz.UTC)
     rounded_minutes = (
-        datetime.now(pytz.UTC).minute // 30
+        dtime.now(pytz.UTC).minute // 30
     ) * 30  # round down to the nearest 30 minutes for to include current price
     target_start = target_start.replace(minute=rounded_minutes, second=0, microsecond=0)
-    target_end = datetime.now(pytz.UTC) + timedelta(hours=forward_time)
+    target_end = dtime.now(pytz.UTC) + timedelta(hours=forward_time)
 
     df_time = df[
         (df["valid_from"] <= target_end) & (df["valid_from"] >= target_start)
