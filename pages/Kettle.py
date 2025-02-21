@@ -68,7 +68,7 @@ def display_kettle_costs(
                 height: {h};
                 width: {w};">
                     <strong>Current Kettle Cost</strong><br>
-                    <span style="font-size: 1.5em;">£{cost_now:.4f}</span>
+                    <span style="font-size: 1.5em;">{cost_now * 100:.2f}p</span>
                     <span style="font-size: 1em;">Valid until {current_cost_row.iloc[0]["valid_to"].strftime("%H:%M")}</span>
                 </div>
             </div>
@@ -84,7 +84,7 @@ def display_kettle_costs(
                 height: {h};
                 width: {w};">
                     <strong>Next Kettle Cost</strong><br>
-                    <span style="font-size: 1.5em;">£{cost_next:.4f}</span>
+                    <span style="font-size: 1.5em;">{cost_next * 100:.2f}p</span>
                     <span style="font-size: 1em;">Valid from {next_cost_row["valid_from"].strftime("%H:%M")} to {next_cost_row["valid_to"].strftime("%H:%M")} </span>
                 </div>
             </div>
@@ -256,7 +256,7 @@ def main():
             )
         with col3:
             cheap_price = cheapest_time["value_inc_vat"]
-            cheap_cost, _ = calculate_kettle_cost(
+            cost_cheap, _ = calculate_kettle_cost(
                 cheap_price, next_price, init_temperature, mass
             )
             st.markdown(
@@ -265,7 +265,7 @@ def main():
                         <div style="{st.session_state.col_format};
                         height: {"40px"};
                         width: {"95%"};">
-                            <span style="font-size: 1.2em;">{cheap_cost:.4f} </span>
+                            <span style="font-size: 1.2em;">{(cost_now - cost_cheap) * 100:.2f}p </span>
                         </div>
                     </div>
                     """,
