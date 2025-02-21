@@ -235,7 +235,7 @@ def main():
         else:
             st.write("No pricing data available for the current time.")
         st.write("Select the length of time in the future to optimize the kettle boil.")
-        col1, col2 = st.columns([2, 1], vertical_alignment="center")
+        col1, col2, col3 = st.columns([2, 1, 1], vertical_alignment="center")
         with col1:
             forward_time = st.number_input(
                 "Forward time [hr]:", value=1.0, step=0.5, label_visibility="collapsed"
@@ -254,7 +254,23 @@ def main():
                     """,
                 unsafe_allow_html=True,
             )
-
+        with col3:
+            cheap_price = cheapest_time["value_inc_vat"]
+            cheap_cost, _ = calculate_kettle_cost(
+                cheap_price, next_price, init_temperature, mass
+            )
+            st.markdown(
+                f"""
+                    <div style="display: flex; justify-content: center;padding-bottom:15px;">
+                        <div style="{st.session_state.col_format};
+                        height: {"40px"};
+                        width: {"95%"};">
+                            <span style="font-size: 1.2em;">{cheap_cost:.4f} </span>
+                        </div>
+                    </div>
+                    """,
+                unsafe_allow_html=True,
+            )
         plot_kettle_timing()
     else:
         st.error("API key not found.")

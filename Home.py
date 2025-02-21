@@ -43,93 +43,71 @@ url_tracker_g = "https://api.octopus.energy/v1/products/SILVER-24-10-01/gas-tari
 st.session_state.df = None
 
 
+def get_color(value):
+    if value < 0:
+        return "#B5146A"  # Cool Blue
+    elif value < 10:
+        return "#F8BDC4"  # Teal Green
+    elif value < 20:
+        return "#F7B538"  # Golden Yellow
+    elif value < 30:
+        return "#DB7C26"  # Vibrant Orange
+    else:
+        return "#D8572A"  # Deep Magenta
+
+
+def plot_info(df, title):
+    fig = go.Figure()
+    colors = [get_color(v) for v in df["value_inc_vat"]]
+
+    fig.add_trace(
+        go.Bar(
+            x=df["valid_from"],
+            y=df["value_inc_vat"],
+            marker=dict(color=colors),
+            name="Price [p/kWh]",
+        )
+    )
+    fig.update_layout(
+        plot_bgcolor=st.session_state.bg_color,
+        font=dict(color=st.session_state.font, size=14),
+        title=dict(text=title, font=dict(color=st.session_state.font)),
+        xaxis=dict(
+            title="Time",
+            title_font=dict(color=st.session_state.font),
+            tickfont=dict(color=st.session_state.font),
+        ),
+        yaxis=dict(
+            title="Price [p/kWh]",
+            title_font=dict(color=st.session_state.font),
+            tickfont=dict(color=st.session_state.font),
+        ),
+    )
+    st.plotly_chart(fig)
+
+
 def plot_data():
     col1, col2 = st.columns([0.15, 0.85], vertical_alignment="center")
 
     with col1:
         day_to_plot = st.radio("Select day:", options=["Today", "Tomorrow"], index=0)
-    with col2:
-        if day_to_plot == "Today":
-            if st.session_state.df is None:
-                st.write("No data available for today.")
-            else:
-                df_today = st.session_state.df[
-                    st.session_state.df["valid_from"].dt.date
-                    == datetime.now(pytz.UTC).date()
-                ]
-                fig_all = go.Figure()
-                fig_all.add_trace(
-                    go.Bar(
-                        x=df_today["valid_from"],
-                        y=df_today["value_inc_vat"],
-                        marker=dict(color=st.session_state.marker),
-                        name="Price [p/kWh]",
-                    )
-                )
 
-                fig_all.update_layout(
-                    plot_bgcolor=st.session_state.bg_color,
-                    font=dict(
-                        color=st.session_state.font,
-                        size=14,
-                    ),
-                    title=dict(
-                        text="Agile Pricing",
-                        font=dict(color=st.session_state.font),
-                    ),
-                    xaxis=dict(
-                        title="Time",
-                        title_font=dict(color=st.session_state.font),
-                        tickfont=dict(color=st.session_state.font),
-                    ),
-                    yaxis=dict(
-                        title="Price [p/kWh]",
-                        title_font=dict(color=st.session_state.font),
-                        tickfont=dict(color=st.session_state.font),
-                    ),
-                )
-                st.plotly_chart(fig_all)
-        elif day_to_plot == "Tomorrow":
-            tomorrow_date = (datetime.now(pytz.UTC) + pd.Timedelta(days=1)).date()
-            df_tom = st.session_state.df[
-                st.session_state.df["valid_from"].dt.date == tomorrow_date
+    with col2:
+        if st.session_state.df is None:
+            st.write(f"No data available for {day_to_plot.lower()}.")
+        else:
+            target_date = datetime.now(pytz.UTC).date()
+            if day_to_plot == "Tomorrow":
+                target_date += pd.Timedelta(days=1)
+
+            df_filtered = st.session_state.df[
+                st.session_state.df["valid_from"].dt.date == target_date
             ]
 
-            if df_tom.empty:
-                st.write("No data available for tomorrow.")
+            if df_filtered.empty:
+                st.write(f"No data available for {day_to_plot.lower()}.")
             else:
-                fig_all = go.Figure()
-                fig_all.add_trace(
-                    go.Bar(
-                        x=df_tom["valid_from"],
-                        y=df_tom["value_inc_vat"],
-                        marker=dict(color=st.session_state.marker),
-                        name="Price [p/kWh]",
-                    )
-                )
-
-                fig_all.update_layout(
-                    plot_bgcolor=st.session_state.bg_color,
-                    font=dict(
-                        color=st.session_state.font,
-                        size=14,
-                    ),
-                    title=dict(
-                        text="Agile Pricing",
-                        font=dict(color=st.session_state.font),
-                    ),
-                    xaxis=dict(
-                        title="Time",
-                        title_font=dict(color=st.session_state.font),
-                        tickfont=dict(color=st.session_state.font),
-                    ),
-                    yaxis=dict(
-                        title="Price [p/kWh]",
-                        title_font=dict(color=st.session_state.font),
-                        tickfont=dict(color=st.session_state.font),
-                    ),
-                )
-                st.plotly_chart(fig_all)
+                plot_info(df_filtered, "Agile Pricing")
 
 
 # """
@@ -174,7 +152,7 @@ def display_current_costs(current_time):
     )
 
     coffee_best = get_optimal_coffee_time(st.session_state.df, datetime.now(pytz.UTC))
-    col1, col2, col3 = st.columns(3, gap="small")
+    col1, col2, col3, col4 = st.columns(4, gap="small")
 
     w = "95%"
     h = "120px"
@@ -193,8 +171,71 @@ def display_current_costs(current_time):
             unsafe_allow_html=True,
         )
 
+    with col2:
+        if current_time.hour < 16:
+            data_temp = st.session_state.df[
+                (st.session_state.df["valid_from"].dt.date == current_time.date())
+            ]
+            data = data_temp[
+                (data_temp["valid_from"].dt.hour < 16)
+                | (data_temp["valid_from"].dt.hour >= 19)
+            ]
+            av_price = data["value_inc_vat"].mean()
+
+            st.markdown(
+                f"""
+                <div style="display: flex; justify-content: center;">
+                    <div style="{st.session_state.col_format};
+                        height: {h};
+                        width: {w};">
+                        <strong>Average Off-Peak Price</strong><br>
+                        <span style="font-size: 1.3em;">{av_price:.2f} p/kWh</span>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            data = st.session_state.df[
+                (
+                    st.session_state.df["valid_from"].dt.date
+                    == current_time.date() + timedelta(days=1)
+                )
+                & (st.session_state.df["valid_from"].dt.hour < 16)
+                | (st.session_state.df["valid_from"].dt.hour > 19)
+            ]
+            av_price = data["value_inc_vat"].mean()
+            if av_price is None:
+                st.markdown(
+                    f"""
+                <div style="display: flex; justify-content: center;">
+                    <div style="{st.session_state.col_format};
+                        height: {h};
+                        width: {w};">
+                        <strong>Average Off-Peak Price</strong><br>
+                        <span style="font-size: 1.3em;">not available yet</span>
+                    </div>
+                </div>
+                """,
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown(
+                    f"""
+                    <div style="display: flex; justify-content: center;">
+                        <div style="{st.session_state.col_format};
+                            height: {h};
+                            width: {w};">
+                            <strong>Average Off-Peak Price</strong><br>
+                            <span style="font-size: 1.3em;">{av_price:.2f} p/kWh</span>
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
     if coffee_best is not None:
-        with col2:
+        with col3:
             st.markdown(
                 f"""
                 <div style="display: flex; justify-content: center;">
@@ -209,7 +250,7 @@ def display_current_costs(current_time):
                 unsafe_allow_html=True,
             )
     else:
-        with col2:
+        with col3:
             st.markdown(
                 f"""
                 <div style="display: flex; justify-content: center;">
@@ -225,9 +266,10 @@ def display_current_costs(current_time):
             )
 
     if tracker_next is not None:
-        tracker_delta = (tracker_next - tracker_now) / tracker_now * 100
-        symb = "&uarr;" if tracker_delta > 0 else "&darr;"
-        with col3:
+        with col4:
+            # st.button("Refresh tracker data", on_click=fetch_data.clear(st.session_state.df_tracker_e))
+            tracker_delta = (tracker_next - tracker_now) / tracker_now * 100
+            symb = "&uarr;" if tracker_delta > 0 else "&darr;"
             st.markdown(
                 f"""
                 <div style="display: flex; justify-content: center;">
@@ -242,7 +284,7 @@ def display_current_costs(current_time):
                 unsafe_allow_html=True,
             )
     else:
-        with col3:
+        with col4:
             st.markdown(
                 f"""
                 <div style="display: flex; justify-content: center;">
@@ -250,11 +292,15 @@ def display_current_costs(current_time):
                         height: {h};
                         width: {w};">
                         <strong>Tomorrow's Tracker Trend</strong><br>
-                        <span style="font-size: 1.3em;">Data not available yet</span>
+                        <span style="font-size: 1.3em;">Data not available</span>
                     </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
+            )
+            st.button(
+                "Refresh tracker data",
+                on_click=fetch_data.clear(st.session_state.df_tracker_e),
             )
 
 
@@ -290,6 +336,7 @@ def main():
     st.markdown(" ")  # Add some space between the input field and the plot
     if st.session_state.df is not None:
         display_current_costs(datetime.now(pytz.UTC))
+
     plot_data()
 
 
