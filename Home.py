@@ -45,15 +45,25 @@ st.session_state.df = None
 
 def get_color(value):
     if value < 0:
-        return "#B5146A"  # Cool Blue
+        return "#e7e1ff"
+    # elif value < 3:
+    #     return "#52add8"
+    elif value < 5:
+        return "#fdbbc1"
+    elif value < 7:
+        return "#ff9a9f"
     elif value < 10:
-        return "#F8BDC4"  # Teal Green
+        return "#666c90"
+    elif value < 15:
+        return "#aa7515"
     elif value < 20:
-        return "#F7B538"  # Golden Yellow
+        return "#f7c8a2"
+    elif value < 25:
+        return "#1a2ee8"
     elif value < 30:
-        return "#DB7C26"  # Vibrant Orange
+        return "#332d58"
     else:
-        return "#D8572A"  # Deep Magenta
+        return "#1e1f57"
 
 
 def plot_info(df, title):
