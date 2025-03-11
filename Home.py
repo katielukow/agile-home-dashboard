@@ -46,24 +46,24 @@ st.session_state.df = None
 def get_color(value):
     if value < 0:
         return "#e7e1ff"
-    # elif value < 3:
-    #     return "#52add8"
-    elif value < 5:
-        return "#fdbbc1"
-    elif value < 7:
-        return "#ff9a9f"
-    elif value < 10:
-        return "#666c90"
-    elif value < 15:
-        return "#aa7515"
-    elif value < 20:
-        return "#f7c8a2"
-    elif value < 25:
-        return "#1a2ee8"
-    elif value < 30:
-        return "#332d58"
-    else:
-        return "#1e1f57"
+
+    thresholds = [5, 7, 10, 15, 20, 25, 30]
+    colors = [
+        "#fdbbc1",
+        "#ff9a9f",
+        "#666c90",
+        "#aa7515",
+        "#f7c8a2",
+        "#1a2ee8",
+        "#332d58",
+        "#1e1f57",
+    ]
+
+    for i, threshold in enumerate(thresholds):
+        if value < threshold:
+            return colors[i]
+
+    return colors[-1]  # Default for value >= 30
 
 
 def plot_info(df, title):
@@ -183,13 +183,14 @@ def display_current_costs(current_time):
 
     with col2:
         if current_time.hour < 16:
-            data_temp = st.session_state.df[
+            only_today = st.session_state.df[
                 (st.session_state.df["valid_from"].dt.date == current_time.date())
             ]
-            data = data_temp[
-                (data_temp["valid_from"].dt.hour < 16)
-                | (data_temp["valid_from"].dt.hour >= 19)
-            ]
+            off_peak = (only_today["valid_from"].dt.hour < 16) | (
+                only_today["valid_from"].dt.hour >= 19
+            )
+            data = only_today[off_peak]
+
             av_price = data["value_inc_vat"].mean()
 
             st.markdown(
@@ -198,23 +199,27 @@ def display_current_costs(current_time):
                     <div style="{st.session_state.col_format};
                         height: {h};
                         width: {w};">
-                        <strong>Average Off-Peak Price</strong><br>
+                        <strong>Today's Average Off-Peak Price</strong><br>
                         <span style="font-size: 1.3em;">{av_price:.2f} p/kWh</span>
                     </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
+
         else:
-            data = st.session_state.df[
+            only_tom = st.session_state.df[
                 (
                     st.session_state.df["valid_from"].dt.date
                     == current_time.date() + timedelta(days=1)
                 )
-                & (st.session_state.df["valid_from"].dt.hour < 16)
-                | (st.session_state.df["valid_from"].dt.hour > 19)
             ]
+            off_peak = (only_tom["valid_from"].dt.hour < 16) | (
+                only_tom["valid_from"].dt.hour > 19
+            )
+            data = only_tom[off_peak]
             av_price = data["value_inc_vat"].mean()
+
             if av_price is None:
                 st.markdown(
                     f"""
@@ -222,7 +227,7 @@ def display_current_costs(current_time):
                     <div style="{st.session_state.col_format};
                         height: {h};
                         width: {w};">
-                        <strong>Average Off-Peak Price</strong><br>
+                        <strong>Tomorrow's Average Off-Peak Price</strong><br>
                         <span style="font-size: 1.3em;">not available yet</span>
                     </div>
                 </div>
@@ -236,7 +241,7 @@ def display_current_costs(current_time):
                         <div style="{st.session_state.col_format};
                             height: {h};
                             width: {w};">
-                            <strong>Average Off-Peak Price</strong><br>
+                            <strong>Tomorrow's Average Off-Peak Price</strong><br>
                             <span style="font-size: 1.3em;">{av_price:.2f} p/kWh</span>
                         </div>
                     </div>
@@ -277,7 +282,6 @@ def display_current_costs(current_time):
 
     if tracker_next is not None:
         with col4:
-            # st.button("Refresh tracker data", on_click=fetch_data.clear(st.session_state.df_tracker_e))
             tracker_delta = (tracker_next - tracker_now) / tracker_now * 100
             symb = "&uarr;" if tracker_delta > 0 else "&darr;"
             st.markdown(
