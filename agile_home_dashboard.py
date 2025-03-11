@@ -11,6 +11,13 @@ diff = dtime.combine(
     dtime.now(pytz.UTC).date(), time(16, 10), tzinfo=pytz.UTC
 ) - dtime.now(pytz.UTC)
 
+st.set_page_config(
+    page_title="Agile Daily Overview",
+    # page_icon="🏂",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
 
 @st.cache_data(ttl=diff)
 def fetch_data(api_key, url):

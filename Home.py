@@ -10,13 +10,6 @@ import toml
 from agile_home_dashboard import fetch_data, get_current_cost, load_css
 from utils import cp, kappa, kettle_energy
 
-st.set_page_config(
-    page_title="Agile Daily Overview",
-    # page_icon="🏂",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
 
 # Load the TOML file
 def load_config(file_path=".streamlit/config.toml"):
