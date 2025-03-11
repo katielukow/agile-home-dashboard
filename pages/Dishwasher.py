@@ -8,28 +8,42 @@ from agile_home_dashboard import get_current_cost, get_current_time, load_css
 load_css()
 
 
-def calculate_drying_cost(dishwasher_time, df, current_time):
-    current_price, _, _, _ = get_current_cost(df, current_time)
-    time_to_next_half_hour = 30 - current_time.minute % 30
+def calculate_total_cost(dishwasher_time, df, current_time):
+    """
+    Calculate the total electricity cost for running a dishwasher.
+
+    This function computes the cost by breaking the dishwasher runtime into
+    half-hour segments and applying the appropriate electricity price for each segment.
+
+    Parameters:
+    -----------
+    df : pandas.DataFrame
+        DataFrame containing electricity price data.
+    current_time : datetime
+        The starting time for the calculation.
+    dishwasher_time : int or float
+        The total runtime of the dishwasher in minutes.
+
+    Returns:
+    --------
+    float
+        The total cost of electricity for running the dishwasher.
+        Cost is calculated as (price * time_in_minutes).
+    """
     total_cost = 0
+    remaining_time = dishwasher_time
 
-    if dishwasher_time <= time_to_next_half_hour:
-        total_cost += (current_price * dishwasher_time) / 6000
-    else:
-        total_cost += (current_price * time_to_next_half_hour) / 6000
-        remaining_time = dishwasher_time - time_to_next_half_hour
+    while remaining_time > 0:
+        current_price = get_current_cost(df, current_time)[0]
+        time_to_next_half_hour = 30 - current_time.minute % 30
+        time_slice = min(remaining_time, time_to_next_half_hour)
 
-    while remaining_time > 30:
-        current_time += timedelta(minutes=30)
-        current_price, _, _, _ = get_current_cost(df, current_time)
+        # Compute costs, decrement remaining time
+        total_cost += current_price * time_slice  # / 6000
+        remaining_time -= time_slice
 
-        total_cost += (current_price * 30) / 6000
-        remaining_time -= 30
-
-    if remaining_time > 0:
-        current_time += timedelta(minutes=30)
-        current_price, _, _, _ = get_current_cost(df, current_time)
-        total_cost += (current_price * remaining_time) / 6000
+        # Shift current time
+        current_time += timedelta(minutes=time_slice)
 
     return total_cost
 
@@ -62,6 +76,7 @@ def main():
     if st.session_state.df is not None:
         toggle = st.toggle("Select time manually", False)
         current_time = get_current_time(toggle, st.session_state.df)
+        remaining_time = current_time
         dishwasher_time = st.text_input("Enter time (HH:MM):", value="03:47")
 
         try:
@@ -72,12 +87,11 @@ def main():
 
         dish_costs = pd.DataFrame(columns=["time", "cost"])
 
-        remaining_time = current_time
         while (
             remaining_time + timedelta(minutes=dishwasher_time)
             <= st.session_state.df["valid_to"].max()
         ):
-            cost = calculate_drying_cost(
+            cost = calculate_total_cost(
                 dishwasher_time, st.session_state.df, remaining_time
             )
             dish_costs = pd.concat(
