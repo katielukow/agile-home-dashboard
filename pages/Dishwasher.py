@@ -104,7 +104,6 @@ def main():
         delay = dish_costs.loc[min_cost_loc]["time"] - current_time
 
         st.write(f"Delay the dishwasher: {delay.total_seconds() / 3600} hours")
-
     else:
         st.error("API key not found.")
 
