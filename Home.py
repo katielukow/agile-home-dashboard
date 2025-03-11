@@ -208,7 +208,7 @@ def display_current_costs(current_time):
                 )
             ]
             off_peak = (only_tom["valid_from"].dt.hour < 16) | (
-                only_tom["valid_from"].dt.hour > 19
+                only_tom["valid_from"].dt.hour >= 19
             )
             data = only_tom[off_peak]
             av_price = data["value_inc_vat"].mean()
