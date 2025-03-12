@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import datetime as dtime
+from datetime import timedelta
 
 import plotly.graph_objects as go
 import pytz
@@ -67,7 +68,7 @@ def display_kettle_costs(
                 height: {h};
                 width: {w};">
                     <strong>Current Kettle Cost</strong><br>
-                    <span style="font-size: 1.5em;">£{cost_now:.4f}</span>
+                    <span style="font-size: 1.5em;">{cost_now * 100:.2f}p</span>
                     <span style="font-size: 1em;">Valid until {current_cost_row.iloc[0]["valid_to"].strftime("%H:%M")}</span>
                 </div>
             </div>
@@ -83,7 +84,7 @@ def display_kettle_costs(
                 height: {h};
                 width: {w};">
                     <strong>Next Kettle Cost</strong><br>
-                    <span style="font-size: 1.5em;">£{cost_next:.4f}</span>
+                    <span style="font-size: 1.5em;">{cost_next * 100:.2f}p</span>
                     <span style="font-size: 1em;">Valid from {next_cost_row["valid_from"].strftime("%H:%M")} to {next_cost_row["valid_to"].strftime("%H:%M")} </span>
                 </div>
             </div>
@@ -93,10 +94,15 @@ def display_kettle_costs(
 
 
 def get_cheapest_time(df, forward_time):
-    target_start = datetime.now(pytz.UTC)
-    target_end = target_start + timedelta(hours=forward_time)
+    target_start = dtime.now(pytz.UTC)
+    current_window = (
+        dtime.now(pytz.UTC).minute // 30
+    ) * 30  # round down to the nearest 30 minutes for to include current price
+    target_start = target_start.replace(minute=current_window, second=0, microsecond=0)
+    target_end = dtime.now(pytz.UTC) + timedelta(hours=forward_time)
+
     df_time = df[
-        (df["valid_to"] <= target_end) & (df["valid_from"] >= target_start)
+        (df["valid_from"] <= target_end) & (df["valid_from"] >= target_start)
     ].copy()
 
     if df_time.empty:
@@ -228,11 +234,43 @@ def main():
             )
         else:
             st.write("No pricing data available for the current time.")
-
-        forward_time = st.number_input("Forward time [hr]:", value=1.0)
-        cheapest_time = get_cheapest_time(st.session_state.df, forward_time)
-        st.write(f"Cheapest time: {cheapest_time['valid_from'].strftime('%H:%M')}")
-
+        st.write("Select the length of time in the future to optimize the kettle boil.")
+        col1, col2, col3 = st.columns([2, 1, 1], vertical_alignment="center")
+        with col1:
+            forward_time = st.number_input(
+                "Forward time [hr]:", value=1.0, step=0.5, label_visibility="collapsed"
+            )
+        with col2:
+            cheapest_time = get_cheapest_time(st.session_state.df, forward_time)
+            st.markdown(
+                f"""
+                    <div style="display: flex; justify-content: center;padding-bottom:15px;">
+                        <div style="{st.session_state.col_format};
+                        height: {"40px"};
+                        width: {"95%"};">
+                            <span style="font-size: 1.2em;">{cheapest_time["valid_from"].strftime("%H:%M")} </span>
+                        </div>
+                    </div>
+                    """,
+                unsafe_allow_html=True,
+            )
+        with col3:
+            cheap_price = cheapest_time["value_inc_vat"]
+            cost_cheap, _ = calculate_kettle_cost(
+                cheap_price, next_price, init_temperature, mass
+            )
+            st.markdown(
+                f"""
+                    <div style="display: flex; justify-content: center;padding-bottom:15px;">
+                        <div style="{st.session_state.col_format};
+                        height: {"40px"};
+                        width: {"95%"};">
+                            <span style="font-size: 1.2em;">{(cost_now - cost_cheap) * 100:.2f}p </span>
+                        </div>
+                    </div>
+                    """,
+                unsafe_allow_html=True,
+            )
         plot_kettle_timing()
     else:
         st.error("API key not found.")
