@@ -8,7 +8,16 @@ import streamlit as st
 import toml
 
 from agile_home_dashboard import fetch_data, get_current_cost, load_css
-from utils import cp, kappa, kettle_energy
+from utils import cp, fit_kettle_efficiency, kettle_energy
+
+st.set_page_config(
+    page_title="Agile Daily Overview",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+# Get kettle efficiency
+kettle_efficiency = fit_kettle_efficiency()
 
 
 # Load the TOML file
@@ -128,7 +137,7 @@ def get_optimal_coffee_time(df, current_time):
 
     mass = 650
     init_temp = 17
-    energy = kettle_energy(init_temp, cp, mass / 1000, kappa)
+    energy = kettle_energy(init_temp, cp, mass / 1000, kettle_efficiency)
 
     target_start, target_end = (
         datetime.combine(coffee_day, t).replace(tzinfo=df["valid_from"].dt.tz)
@@ -192,7 +201,7 @@ def display_current_costs(current_time):
                     <div style="{st.session_state.col_format};
                         height: {h};
                         width: {w};">
-                        <strong>Today's Average Off-Peak Price</strong><br>
+                        <strong>Today's Average Off-Peak</strong><br>
                         <span style="font-size: 1.3em;">{av_price:.2f} p/kWh</span>
                     </div>
                 </div>
@@ -220,7 +229,7 @@ def display_current_costs(current_time):
                     <div style="{st.session_state.col_format};
                         height: {h};
                         width: {w};">
-                        <strong>Tomorrow's Average Off-Peak Price</strong><br>
+                        <strong>Tomorrow's Average Off-Peak</strong><br>
                         <span style="font-size: 1.3em;">not available yet</span>
                     </div>
                 </div>
@@ -250,7 +259,7 @@ def display_current_costs(current_time):
                     <div style="{st.session_state.col_format};
                         height: {h};
                         width: {w};">
-                        <strong>The best time to make coffee is:</strong><br>
+                        <strong>Best coffee time is:</strong><br>
                         <span style="font-size: 1.3em;">{coffee_best["valid_from"].strftime("%H:%M")}</span>
                     </div>
                 </div>
@@ -265,7 +274,7 @@ def display_current_costs(current_time):
                     <div style="{st.session_state.col_format};
                         height: {h};
                         width: {w};">
-                        <strong>The best time to make coffee is:</strong><br>
+                        <strong>Best coffee time is:</strong><br>
                         <span style="font-size: 1.3em;">Data not available yet</span>
                     </div>
                 </div>
@@ -283,7 +292,7 @@ def display_current_costs(current_time):
                     <div style="{st.session_state.col_format};
                         height: {h};
                         width: {w};">
-                        <strong>Tomorrow's Tracker Trend</strong><br>
+                        <strong>Tomorrow's tracker trend</strong><br>
                         <span style="font-size: 1.3em;">{symb} {abs(tracker_delta):.1f}%</span>
                     </div>
                 </div>
