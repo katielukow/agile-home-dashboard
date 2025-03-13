@@ -6,16 +6,19 @@ import pytz
 import streamlit as st
 
 from agile_home_dashboard import get_current_cost, get_current_time, load_css
-from utils import cp, kappa, kettle_energy, kettle_timing
+from utils import cp, fit_kettle_efficiency, kettle_energy, kettle_timing
 
 load_css()
+
+# Get kettle efficiency
+kettle_efficiency = fit_kettle_efficiency()
 
 
 def calculate_kettle_cost(current_price, next_price, init_temp, mass):
     """
     Calculates the kettle cost
     """
-    energy = kettle_energy(init_temp, cp, mass / 1000, kappa)
+    energy = kettle_energy(init_temp, cp, mass / 1000, kettle_efficiency)
     cost_now = energy / (3600) * current_price / 100
     cost_next = energy / (3600) * next_price / 100
 
