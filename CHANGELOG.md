@@ -4,6 +4,8 @@
 
 ## Bug Fixes
 
+- [#37](https://github.com/katielukow/agile-home-dashboard/pull/37) - Ensures `st.page_config` is set with corresponding refactoring to `utils.py`
+
 ## Breaking Changes
 
 # [0.1.0](https://github.com/katielukow/agile-home-dashboard/tree/v0.1.0)
