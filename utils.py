@@ -3,6 +3,9 @@ import pandas as pd
 import streamlit as st
 from scipy.optimize import minimize
 
+# Defaults
+cp = 4.19298  # mean value between 0C - 100C
+
 # Kettle observations
 kettle_timing = pd.DataFrame(
     {
@@ -38,8 +41,3 @@ def fit_kettle_efficiency():
 
     result = minimize(kettle_fit, x0=np.array([1.0]))
     return result.x[0]
-
-
-# Defaults
-cp = 4.19298  # mean value between 0C - 100C
-kappa = fit_kettle_efficiency()
