@@ -126,8 +126,6 @@ def plot_data():
 # Get the optimal time to make coffee either this morning or tomorrow morning.
 # Uses the date as tomorrow if it is after 10am, otherwise use today. Default mass, temperature is 650ml, 17degC to represent two cups of coffee at winter room temp.
 # """
-
-
 def get_optimal_coffee_time(df, current_time):
     coffee_day = (
         current_time.date() + timedelta(days=1)
@@ -314,10 +312,6 @@ def display_current_costs(current_time):
                 """,
                 unsafe_allow_html=True,
             )
-            st.button(
-                "Refresh tracker data",
-                on_click=fetch_data.clear(st.session_state.df_tracker_e),
-            )
 
 
 # Function to load a module from a file
@@ -339,15 +333,9 @@ def main():
     if "temp" not in st.session_state:
         st.session_state.temp = ""  # Default value
 
-    st.text_input(
-        "Enter your Octopus Energy API key:", key="api_key", on_change=clear_input
-    )
-
-    api_key = st.session_state["temp"]
-
     if st.session_state.df is None:
-        st.session_state.df = fetch_data(api_key, url)
-        st.session_state.df_tracker_e = fetch_data(api_key, url_tracker_e)
+        st.session_state.df = fetch_data(url)
+        st.session_state.df_tracker_e = fetch_data(url_tracker_e)
 
     st.markdown(" ")  # Add some space between the input field and the plot
     if st.session_state.df is not None:
