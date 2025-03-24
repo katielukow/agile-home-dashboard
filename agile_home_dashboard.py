@@ -14,24 +14,18 @@ diff = dtime.combine(
 @st.cache_data(ttl=diff)
 def fetch_data(url):
     try:
-        # Make the request without authentication
         response = requests.get(url)
 
         if response.status_code == 200:
             data = response.json()
-            # Parse the results
             results = data.get("results", [])
-
-            # Create a DataFrame for easier manipulation
             df = pd.DataFrame(results)
 
-            # Convert valid_from and valid_to to datetime
+            # Convert to datetime format
             df["valid_from"] = pd.to_datetime(df["valid_from"])
             df["valid_to"] = pd.to_datetime(df["valid_to"])
 
-            # Sort by time
-            df = df.sort_values(by="valid_from")
-            return df
+            return df.sort_values(by="valid_from")
         else:
             st.write(f"Failed to fetch data. Status code: {response.status_code}")
             st.write(response.text)
