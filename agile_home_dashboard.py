@@ -1,4 +1,3 @@
-import base64
 from datetime import datetime as dtime
 from datetime import time, timedelta
 
@@ -13,41 +12,32 @@ diff = dtime.combine(
 
 
 @st.cache_data(ttl=diff)
-def fetch_data(api_key, url):
-    if api_key is None:
-        st.write("Please enter an API key.")
-        return None
+def fetch_data(url):
+    try:
+        # Make the request without authentication
+        response = requests.get(url)
 
-    # Encode the API key for Basic Authentication
-    auth_header = base64.b64encode(f"{api_key}:".encode()).decode("utf-8")
+        if response.status_code == 200:
+            data = response.json()
+            # Parse the results
+            results = data.get("results", [])
 
-    # Set up the headers
-    headers = {
-        "Authorization": f"Basic {auth_header}",
-    }
+            # Create a DataFrame for easier manipulation
+            df = pd.DataFrame(results)
 
-    # Make the request
-    response = requests.get(url, headers=headers)
+            # Convert valid_from and valid_to to datetime
+            df["valid_from"] = pd.to_datetime(df["valid_from"])
+            df["valid_to"] = pd.to_datetime(df["valid_to"])
 
-    if response.status_code == 200:
-        data = response.json()
-        # Parse the results
-        results = data.get("results", [])
-
-        # Create a DataFrame for easier manipulation
-        df = pd.DataFrame(results)
-
-        # Convert valid_from and valid_to to datetime
-        df["valid_from"] = pd.to_datetime(df["valid_from"])
-        df["valid_to"] = pd.to_datetime(df["valid_to"])
-
-        # Sort by time
-        df = df.sort_values(by="valid_from")
-        return df
-
-    else:
-        st.write(f"Failed to fetch data. Status code: {response.status_code}")
-        st.write(response.text)
+            # Sort by time
+            df = df.sort_values(by="valid_from")
+            return df
+        else:
+            st.write(f"Failed to fetch data. Status code: {response.status_code}")
+            st.write(response.text)
+            return None
+    except Exception as e:
+        st.write(f"Error fetching data: {str(e)}")
         return None
 
 
