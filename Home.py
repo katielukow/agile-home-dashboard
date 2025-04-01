@@ -1,5 +1,6 @@
 import os
-from datetime import datetime, time, timedelta
+from datetime import datetime as dtime
+from datetime import time, timedelta
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -33,6 +34,7 @@ st.session_state.marker = "#7DBDF5"
 st.session_state.textBoxColor = "#2A69A1"
 st.session_state.textColor = "#B5146A"
 st.session_state.primary_color = colors["primaryColor"]
+
 
 load_css()
 
@@ -108,7 +110,7 @@ def plot_data():
         if st.session_state.df is None:
             st.write(f"No data available for {day_to_plot.lower()}.")
         else:
-            target_date = datetime.now(pytz.UTC).date()
+            target_date = dtime.now(pytz.timezone("Europe/London")).date()
             if day_to_plot == "Tomorrow":
                 target_date += pd.Timedelta(days=1)
 
@@ -138,9 +140,9 @@ def get_optimal_coffee_time(df, current_time):
     energy = kettle_energy(init_temp, cp, mass / 1000, kettle_efficiency)
 
     target_start, target_end = (
-        datetime.combine(coffee_day, t).replace(tzinfo=df["valid_from"].dt.tz)
+        dtime.combine(coffee_day, t).replace(tzinfo=df["valid_from"].dt.tz)
         if df["valid_from"].dt.tz is not None
-        else datetime.combine(coffee_day, t)
+        else dtime.combine(coffee_day, t)
         for t in (time(7, 30), time(9, 30))
     )
 
@@ -161,7 +163,9 @@ def display_current_costs(current_time):
         st.session_state.df_tracker_e, current_time
     )
 
-    coffee_best = get_optimal_coffee_time(st.session_state.df, datetime.now(pytz.UTC))
+    coffee_best = get_optimal_coffee_time(
+        st.session_state.df, dtime.now(pytz.timezone("Europe/London"))
+    )
     col1, col2, col3, col4 = st.columns(4, gap="small")
 
     w = "95%"
@@ -339,7 +343,7 @@ def main():
 
     st.markdown(" ")  # Add some space between the input field and the plot
     if st.session_state.df is not None:
-        display_current_costs(datetime.now(pytz.UTC))
+        display_current_costs(dtime.now(pytz.timezone("Europe/London")))
 
     plot_data()
 

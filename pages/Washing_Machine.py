@@ -66,7 +66,7 @@ def main():
             ]
 
             if st.session_state.df["valid_from"].max().date() != datetime.now(
-                pytz.UTC
+                pytz.timezone("Europe/London")
             ).date() + timedelta(days=1):
                 st.warning("Data for tomorrow not available yet.")
 
