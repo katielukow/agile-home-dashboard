@@ -6,9 +6,14 @@ import pytz
 import requests
 import streamlit as st
 
+st.session_state.london_tz = pytz.timezone("Europe/London")
+# now_london = dtime.now(st.session_state.london_tz)
+
 diff = dtime.combine(
-    dtime.now(pytz.UTC).date(), time(16, 10), tzinfo=pytz.UTC
-) - dtime.now(pytz.UTC)
+    dtime.now(st.session_state.london_tz).date(),
+    time(16, 10),
+    tzinfo=st.session_state.london_tz,
+) - dtime.now(st.session_state.london_tz)
 
 
 @st.cache_data(ttl=diff)
@@ -21,9 +26,13 @@ def fetch_data(url):
             results = data.get("results", [])
             df = pd.DataFrame(results)
 
-            # Convert to datetime format
-            df["valid_from"] = pd.to_datetime(df["valid_from"])
-            df["valid_to"] = pd.to_datetime(df["valid_to"])
+            df["valid_from"] = pd.to_datetime(df["valid_from"], utc=True)
+            df["valid_to"] = pd.to_datetime(df["valid_to"], utc=True)
+
+            # Convert to London time zone
+            london_tz = pytz.timezone("Europe/London")
+            df["valid_from"] = df["valid_from"].dt.tz_convert(london_tz)
+            df["valid_to"] = df["valid_to"].dt.tz_convert(london_tz)
 
             return df.sort_values(by="valid_from")
         else:
@@ -37,7 +46,7 @@ def fetch_data(url):
 
 def get_current_time(toggle, df):
     if not toggle:
-        return dtime.now(pytz.UTC)
+        return dtime.now(st.session_state.london_tz)
     else:
         col1, col2 = st.columns([1, 3])  # Adjust the column widths as needed
 
@@ -47,9 +56,9 @@ def get_current_time(toggle, df):
 
         # Determine the selected date
         selected_date = (
-            dtime.now(pytz.UTC).date()
+            dtime.now(st.session_state.london_tz).date()
             if day_toggle == "Today"
-            else dtime.now(pytz.UTC).date() + timedelta(days=1)
+            else dtime.now(st.session_state.london_tz).date() + timedelta(days=1)
         )
 
         # Filter DataFrame based on the selected date
@@ -60,7 +69,7 @@ def get_current_time(toggle, df):
             end_time = df["valid_from"].max().to_pydatetime()
 
             if "selected_time" not in st.session_state:
-                st.session_state.selected_time = dtime.now(pytz.UTC)
+                st.session_state.selected_time = dtime.now(st.session_state.london_tz)
 
             with col2:
                 selected_time = st.slider(
