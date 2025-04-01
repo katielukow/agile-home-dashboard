@@ -7,7 +7,6 @@ import requests
 import streamlit as st
 
 st.session_state.london_tz = pytz.timezone("Europe/London")
-# now_london = dtime.now(st.session_state.london_tz)
 
 diff = dtime.combine(
     dtime.now(st.session_state.london_tz).date(),
