@@ -6,6 +6,16 @@
 
 ## Breaking Changes
 
+# [0.3.1](https://github.com/katielukow/agile-home-dashboard)
+
+## Features
+
+## Bug Fixes
+
+- [#45](https://github.com/katielukow/agile-home-dashboard/pull/45) - Fixes session state error from [#41](https://github.com/katielukow/agile-home-dashboard/pull/41)
+
+## Breaking Changes
+
 # [0.3.0](https://github.com/katielukow/agile-home-dashboard/tree/v0.3.0)
 
 ## Features
