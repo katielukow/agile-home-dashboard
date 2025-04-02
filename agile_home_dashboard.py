@@ -1,4 +1,3 @@
-import base64
 from datetime import datetime as dtime
 from datetime import time, timedelta
 
@@ -7,60 +6,46 @@ import pytz
 import requests
 import streamlit as st
 
-diff = dtime.combine(
-    dtime.now(pytz.UTC).date(), time(16, 10), tzinfo=pytz.UTC
-) - dtime.now(pytz.UTC)
+st.session_state.london_tz = pytz.timezone("Europe/London")
 
-st.set_page_config(
-    page_title="Agile Daily Overview",
-    # page_icon="🏂",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+diff = dtime.combine(
+    dtime.now(st.session_state.london_tz).date(),
+    time(16, 10),
+    tzinfo=st.session_state.london_tz,
+) - dtime.now(st.session_state.london_tz)
 
 
 @st.cache_data(ttl=diff)
-def fetch_data(api_key, url):
-    if api_key is None:
-        st.write("Please enter an API key.")
-        return None
+def fetch_data(url):
+    try:
+        response = requests.get(url)
 
-    # Encode the API key for Basic Authentication
-    auth_header = base64.b64encode(f"{api_key}:".encode()).decode("utf-8")
+        if response.status_code == 200:
+            data = response.json()
+            results = data.get("results", [])
+            df = pd.DataFrame(results)
 
-    # Set up the headers
-    headers = {
-        "Authorization": f"Basic {auth_header}",
-    }
+            df["valid_from"] = pd.to_datetime(df["valid_from"], utc=True)
+            df["valid_to"] = pd.to_datetime(df["valid_to"], utc=True)
 
-    # Make the request
-    response = requests.get(url, headers=headers)
+            # Convert to London time zone
+            london_tz = pytz.timezone("Europe/London")
+            df["valid_from"] = df["valid_from"].dt.tz_convert(london_tz)
+            df["valid_to"] = df["valid_to"].dt.tz_convert(london_tz)
 
-    if response.status_code == 200:
-        data = response.json()
-        # Parse the results
-        results = data.get("results", [])
-
-        # Create a DataFrame for easier manipulation
-        df = pd.DataFrame(results)
-
-        # Convert valid_from and valid_to to datetime
-        df["valid_from"] = pd.to_datetime(df["valid_from"])
-        df["valid_to"] = pd.to_datetime(df["valid_to"])
-
-        # Sort by time
-        df = df.sort_values(by="valid_from")
-        return df
-
-    else:
-        st.write(f"Failed to fetch data. Status code: {response.status_code}")
-        st.write(response.text)
+            return df.sort_values(by="valid_from")
+        else:
+            st.write(f"Failed to fetch data. Status code: {response.status_code}")
+            st.write(response.text)
+            return None
+    except Exception as e:
+        st.write(f"Error fetching data: {str(e)}")
         return None
 
 
 def get_current_time(toggle, df):
     if not toggle:
-        return dtime.now(pytz.UTC)
+        return dtime.now(st.session_state.london_tz)
     else:
         col1, col2 = st.columns([1, 3])  # Adjust the column widths as needed
 
@@ -70,9 +55,9 @@ def get_current_time(toggle, df):
 
         # Determine the selected date
         selected_date = (
-            dtime.now(pytz.UTC).date()
+            dtime.now(st.session_state.london_tz).date()
             if day_toggle == "Today"
-            else dtime.now(pytz.UTC).date() + timedelta(days=1)
+            else dtime.now(st.session_state.london_tz).date() + timedelta(days=1)
         )
 
         # Filter DataFrame based on the selected date
@@ -83,7 +68,7 @@ def get_current_time(toggle, df):
             end_time = df["valid_from"].max().to_pydatetime()
 
             if "selected_time" not in st.session_state:
-                st.session_state.selected_time = dtime.now(pytz.UTC)
+                st.session_state.selected_time = dtime.now(st.session_state.london_tz)
 
             with col2:
                 selected_time = st.slider(

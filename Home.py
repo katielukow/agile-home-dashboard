@@ -1,5 +1,6 @@
 import os
-from datetime import datetime, time, timedelta
+from datetime import datetime as dtime
+from datetime import time, timedelta
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -8,7 +9,16 @@ import streamlit as st
 import toml
 
 from agile_home_dashboard import fetch_data, get_current_cost, load_css
-from utils import cp, kappa, kettle_energy
+from utils import cp, fit_kettle_efficiency, kettle_energy
+
+st.set_page_config(
+    page_title="Agile Daily Overview",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+# Get kettle efficiency
+kettle_efficiency = fit_kettle_efficiency()
 
 
 # Load the TOML file
@@ -24,6 +34,7 @@ st.session_state.marker = "#7DBDF5"
 st.session_state.textBoxColor = "#2A69A1"
 st.session_state.textColor = "#B5146A"
 st.session_state.primary_color = colors["primaryColor"]
+
 
 load_css()
 
@@ -99,7 +110,7 @@ def plot_data():
         if st.session_state.df is None:
             st.write(f"No data available for {day_to_plot.lower()}.")
         else:
-            target_date = datetime.now(pytz.UTC).date()
+            target_date = dtime.now(pytz.timezone("Europe/London")).date()
             if day_to_plot == "Tomorrow":
                 target_date += pd.Timedelta(days=1)
 
@@ -117,8 +128,6 @@ def plot_data():
 # Get the optimal time to make coffee either this morning or tomorrow morning.
 # Uses the date as tomorrow if it is after 10am, otherwise use today. Default mass, temperature is 650ml, 17degC to represent two cups of coffee at winter room temp.
 # """
-
-
 def get_optimal_coffee_time(df, current_time):
     coffee_day = (
         current_time.date() + timedelta(days=1)
@@ -128,12 +137,12 @@ def get_optimal_coffee_time(df, current_time):
 
     mass = 650
     init_temp = 17
-    energy = kettle_energy(init_temp, cp, mass / 1000, kappa)
+    energy = kettle_energy(init_temp, cp, mass / 1000, kettle_efficiency)
 
     target_start, target_end = (
-        datetime.combine(coffee_day, t).replace(tzinfo=df["valid_from"].dt.tz)
+        dtime.combine(coffee_day, t).replace(tzinfo=df["valid_from"].dt.tz)
         if df["valid_from"].dt.tz is not None
-        else datetime.combine(coffee_day, t)
+        else dtime.combine(coffee_day, t)
         for t in (time(7, 30), time(9, 30))
     )
 
@@ -154,7 +163,9 @@ def display_current_costs(current_time):
         st.session_state.df_tracker_e, current_time
     )
 
-    coffee_best = get_optimal_coffee_time(st.session_state.df, datetime.now(pytz.UTC))
+    coffee_best = get_optimal_coffee_time(
+        st.session_state.df, dtime.now(pytz.timezone("Europe/London"))
+    )
     col1, col2, col3, col4 = st.columns(4, gap="small")
 
     w = "95%"
@@ -192,7 +203,7 @@ def display_current_costs(current_time):
                     <div style="{st.session_state.col_format};
                         height: {h};
                         width: {w};">
-                        <strong>Today's Average Off-Peak Price</strong><br>
+                        <strong>Today's Average Off-Peak</strong><br>
                         <span style="font-size: 1.3em;">{av_price:.2f} p/kWh</span>
                     </div>
                 </div>
@@ -220,7 +231,7 @@ def display_current_costs(current_time):
                     <div style="{st.session_state.col_format};
                         height: {h};
                         width: {w};">
-                        <strong>Tomorrow's Average Off-Peak Price</strong><br>
+                        <strong>Tomorrow's Average Off-Peak</strong><br>
                         <span style="font-size: 1.3em;">not available yet</span>
                     </div>
                 </div>
@@ -250,7 +261,7 @@ def display_current_costs(current_time):
                     <div style="{st.session_state.col_format};
                         height: {h};
                         width: {w};">
-                        <strong>The best time to make coffee is:</strong><br>
+                        <strong>Best coffee time is:</strong><br>
                         <span style="font-size: 1.3em;">{coffee_best["valid_from"].strftime("%H:%M")}</span>
                     </div>
                 </div>
@@ -265,7 +276,7 @@ def display_current_costs(current_time):
                     <div style="{st.session_state.col_format};
                         height: {h};
                         width: {w};">
-                        <strong>The best time to make coffee is:</strong><br>
+                        <strong>Best coffee time is:</strong><br>
                         <span style="font-size: 1.3em;">Data not available yet</span>
                     </div>
                 </div>
@@ -283,7 +294,7 @@ def display_current_costs(current_time):
                     <div style="{st.session_state.col_format};
                         height: {h};
                         width: {w};">
-                        <strong>Tomorrow's Tracker Trend</strong><br>
+                        <strong>Tomorrow's tracker trend</strong><br>
                         <span style="font-size: 1.3em;">{symb} {abs(tracker_delta):.1f}%</span>
                     </div>
                 </div>
@@ -304,10 +315,6 @@ def display_current_costs(current_time):
                 </div>
                 """,
                 unsafe_allow_html=True,
-            )
-            st.button(
-                "Refresh tracker data",
-                on_click=fetch_data.clear(st.session_state.df_tracker_e),
             )
 
 
@@ -330,19 +337,13 @@ def main():
     if "temp" not in st.session_state:
         st.session_state.temp = ""  # Default value
 
-    st.text_input(
-        "Enter your Octopus Energy API key:", key="api_key", on_change=clear_input
-    )
-
-    api_key = st.session_state["temp"]
-
     if st.session_state.df is None:
-        st.session_state.df = fetch_data(api_key, url)
-        st.session_state.df_tracker_e = fetch_data(api_key, url_tracker_e)
+        st.session_state.df = fetch_data(url)
+        st.session_state.df_tracker_e = fetch_data(url_tracker_e)
 
     st.markdown(" ")  # Add some space between the input field and the plot
     if st.session_state.df is not None:
-        display_current_costs(datetime.now(pytz.UTC))
+        display_current_costs(dtime.now(pytz.timezone("Europe/London")))
 
     plot_data()
 
