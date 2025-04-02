@@ -11,6 +11,7 @@ To create a new release, follow these steps:
    -  Increment the following:
          -  The version number in the `pyproject.toml` file.
          -  The `CHANGELOG.md` version with the changes for the new version.
+    -  Open a PR to the `main` branch. Once the PR is merged, proceed to the next step.
 
 
 2. **Create a GitHub Release:**
