@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "Agile-Home-Dashboard"
-version = "0.2.0"
+version = "0.3.0"
 description = "A dashboard for Octopus Agile users to optimise appliance usage"
 authors = [{name = "Katie Lukow"}, {name = "Brady Planden"}]
 requires-python = ">=3.10"
