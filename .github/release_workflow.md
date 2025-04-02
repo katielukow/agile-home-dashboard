@@ -9,7 +9,7 @@ To create a new release, follow these steps:
 1. **Prepare the Release:**
    -  Create a new branch for the release (i.e. `v0.X.0`) from `develop`.
    -  Increment the following:
-         -  The version number in the `pyproject.toml` and `CITATION.cff` files.
+         -  The version number in the `pyproject.toml` file.
          -  The `CHANGELOG.md` version with the changes for the new version.
 
 
