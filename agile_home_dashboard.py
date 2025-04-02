@@ -6,13 +6,11 @@ import pytz
 import requests
 import streamlit as st
 
-st.session_state.london_tz = pytz.timezone("Europe/London")
-
 diff = dtime.combine(
-    dtime.now(st.session_state.london_tz).date(),
+    dtime.now(pytz.timezone("Europe/London")).date(),
     time(16, 10),
-    tzinfo=st.session_state.london_tz,
-) - dtime.now(st.session_state.london_tz)
+    tzinfo=pytz.timezone("Europe/London"),
+) - dtime.now(pytz.timezone("Europe/London"))
 
 
 @st.cache_data(ttl=diff)
@@ -45,7 +43,7 @@ def fetch_data(url):
 
 def get_current_time(toggle, df):
     if not toggle:
-        return dtime.now(st.session_state.london_tz)
+        return dtime.now(pytz.timezone("Europe/London"))
     else:
         col1, col2 = st.columns([1, 3])  # Adjust the column widths as needed
 
@@ -55,9 +53,9 @@ def get_current_time(toggle, df):
 
         # Determine the selected date
         selected_date = (
-            dtime.now(st.session_state.london_tz).date()
+            dtime.now(pytz.timezone("Europe/London")).date()
             if day_toggle == "Today"
-            else dtime.now(st.session_state.london_tz).date() + timedelta(days=1)
+            else dtime.now(pytz.timezone("Europe/London")).date() + timedelta(days=1)
         )
 
         # Filter DataFrame based on the selected date
@@ -68,7 +66,9 @@ def get_current_time(toggle, df):
             end_time = df["valid_from"].max().to_pydatetime()
 
             if "selected_time" not in st.session_state:
-                st.session_state.selected_time = dtime.now(st.session_state.london_tz)
+                st.session_state.selected_time = dtime.now(
+                    pytz.timezone("Europe/London")
+                )
 
             with col2:
                 selected_time = st.slider(
