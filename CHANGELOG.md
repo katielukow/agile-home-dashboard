@@ -1,4 +1,12 @@
-# [0.3.0](https://github.com/katielukow/agile-home-dashboard)
+# [Unreleased](https://github.com/katielukow/agile-home-dashboard)
+
+## Features
+
+## Bug Fixes
+
+## Breaking Changes
+
+# [0.3.0](https://github.com/katielukow/agile-home-dashboard/tree/v0.3.0)
 
 ## Features
 - [#39](https://github.com/katielukow/agile-home-dashboard/pull/39) - Removes requirement for API key
