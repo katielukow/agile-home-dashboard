@@ -6,11 +6,13 @@ import pytz
 import requests
 import streamlit as st
 
+london_timezone = pytz.timezone("Europe/London")
+
 diff = dtime.combine(
-    dtime.now(pytz.timezone("Europe/London")).date(),
+    dtime.now(london_timezone).date(),
     time(16, 10),
-    tzinfo=pytz.timezone("Europe/London"),
-) - dtime.now(pytz.timezone("Europe/London"))
+    tzinfo=london_timezone,
+) - dtime.now(london_timezone)
 
 
 @st.cache_data(ttl=diff)
@@ -27,9 +29,8 @@ def fetch_data(url):
             df["valid_to"] = pd.to_datetime(df["valid_to"], utc=True)
 
             # Convert to London time zone
-            london_tz = pytz.timezone("Europe/London")
-            df["valid_from"] = df["valid_from"].dt.tz_convert(london_tz)
-            df["valid_to"] = df["valid_to"].dt.tz_convert(london_tz)
+            df["valid_from"] = df["valid_from"].dt.tz_convert(london_timezone)
+            df["valid_to"] = df["valid_to"].dt.tz_convert(london_timezone)
 
             return df.sort_values(by="valid_from")
         else:
@@ -43,7 +44,7 @@ def fetch_data(url):
 
 def get_current_time(toggle, df):
     if not toggle:
-        return dtime.now(pytz.timezone("Europe/London"))
+        return dtime.now(london_timezone)
     else:
         col1, col2 = st.columns([1, 3])  # Adjust the column widths as needed
 
@@ -53,9 +54,9 @@ def get_current_time(toggle, df):
 
         # Determine the selected date
         selected_date = (
-            dtime.now(pytz.timezone("Europe/London")).date()
+            dtime.now(london_timezone).date()
             if day_toggle == "Today"
-            else dtime.now(pytz.timezone("Europe/London")).date() + timedelta(days=1)
+            else dtime.now(london_timezone).date() + timedelta(days=1)
         )
 
         # Filter DataFrame based on the selected date
@@ -66,9 +67,7 @@ def get_current_time(toggle, df):
             end_time = df["valid_from"].max().to_pydatetime()
 
             if "selected_time" not in st.session_state:
-                st.session_state.selected_time = dtime.now(
-                    pytz.timezone("Europe/London")
-                )
+                st.session_state.selected_time = dtime.now(london_timezone)
 
             with col2:
                 selected_time = st.slider(
